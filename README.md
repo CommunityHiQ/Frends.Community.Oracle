@@ -82,7 +82,7 @@ Rebuild the project
 
 Run Tests with nunit3. Tests can be found under
 
-`Frends.Community.Oracle.Query.Tests\bin\Release\Frends.Community.Ftp.Tests.dll`
+`Frends.Community.Oracle.Query.Tests\bin\Release\Frends.Community.Oracle.Query.Tests.dll`
 
 Create a nuget package
 
