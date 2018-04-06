@@ -44,6 +44,7 @@ namespace Frends.Community.Oracle.Query
         /// Xml root element name
         /// </summary>
         [ConditionalDisplay(nameof(ReturnType), QueryReturnType.Xml)]
+        [DefaultDisplayType(DisplayType.Text)]
         [DefaultValue("ROWSET")]
         public string RootElementName { get; set; }
 
@@ -51,6 +52,7 @@ namespace Frends.Community.Oracle.Query
         /// Xml row element name
         /// </summary>
         [ConditionalDisplay(nameof(ReturnType), QueryReturnType.Xml)]
+        [DefaultDisplayType(DisplayType.Text)]
         [DefaultValue("ROW")]
         public string RowElementName { get; set; }
 
@@ -65,6 +67,7 @@ namespace Frends.Community.Oracle.Query
         /// Specify the culture info to be used when parsing result to JSON. If this is left empty InvariantCulture will be used. List of cultures: https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx Use the Language Culture Name.
         /// </summary>
         [ConditionalDisplay(nameof(ReturnType), QueryReturnType.Json)]
+        [DefaultDisplayType(DisplayType.Text)]
         public string CultureInfo { get; set; }
 
         /// <summary>
