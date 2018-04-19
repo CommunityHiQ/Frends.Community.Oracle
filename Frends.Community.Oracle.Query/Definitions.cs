@@ -1,5 +1,5 @@
-﻿using Frends.Tasks.Attributes;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 #pragma warning disable 1591
 
@@ -20,7 +20,7 @@ namespace Frends.Community.Oracle.Query
         /// <summary>
         /// Oracle connection string
         /// </summary>
-        [DefaultDisplayType(DisplayType.Text)]
+        [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
         public string ConnectionString { get; set; }
 
@@ -33,7 +33,7 @@ namespace Frends.Community.Oracle.Query
     }
     public class QueryProperties
     {
-        [DefaultDisplayType(DisplayType.Text)]
+        [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("SELECT ColumnName FROM TableName")]
         public string Query { get; set; }
 
@@ -43,16 +43,16 @@ namespace Frends.Community.Oracle.Query
         /// <summary>
         /// Xml root element name
         /// </summary>
-        [ConditionalDisplay(nameof(ReturnType), QueryReturnType.Xml)]
-        [DefaultDisplayType(DisplayType.Text)]
+        [UIHint(nameof(ReturnType), "", QueryReturnType.Xml)]
+        [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("ROWSET")]
         public string RootElementName { get; set; }
 
         /// <summary>
         /// Xml row element name
         /// </summary>
-        [ConditionalDisplay(nameof(ReturnType), QueryReturnType.Xml)]
-        [DefaultDisplayType(DisplayType.Text)]
+        [UIHint(nameof(ReturnType), "", QueryReturnType.Xml)]
+        [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("ROW")]
         public string RowElementName { get; set; }
 
@@ -60,14 +60,14 @@ namespace Frends.Community.Oracle.Query
         /// The maximum amount of rows to return; defaults to -1 eg. no limit
         /// </summary>
         [DefaultValue(-1)]
-        [ConditionalDisplay(nameof(ReturnType), QueryReturnType.Xml)]
+        [UIHint(nameof(ReturnType), "", QueryReturnType.Xml)]
         public int MaxmimumRows { get; set; }
 
         /// <summary>
         /// Specify the culture info to be used when parsing result to JSON. If this is left empty InvariantCulture will be used. List of cultures: https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx Use the Language Culture Name.
         /// </summary>
-        [ConditionalDisplay(nameof(ReturnType), QueryReturnType.Json)]
-        [DefaultDisplayType(DisplayType.Text)]
+        [UIHint(nameof(ReturnType), "", QueryReturnType.Json)]
+        [DisplayFormat(DataFormatString = "Text")]
         public string CultureInfo { get; set; }
 
         /// <summary>
@@ -82,14 +82,14 @@ namespace Frends.Community.Oracle.Query
         /// The name of the parameter
         /// </summary>
         [DefaultValue("ParameterName")]
-        [DefaultDisplayType(DisplayType.Text)]
+        [DisplayFormat(DataFormatString = "Text")]
         public string Name { get; set; }
 
         /// <summary>
         /// The value of the parameter
         /// </summary>
         [DefaultValue("Parameter value")]
-        [DefaultDisplayType(DisplayType.Text)]
+        [DisplayFormat(DataFormatString = "Text")]
         public dynamic Value { get; set; }
 
         /// <summary>
