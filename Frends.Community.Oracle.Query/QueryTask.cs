@@ -1,6 +1,6 @@
-﻿using Frends.Tasks.Attributes;
-using Oracle.ManagedDataAccess.Client;
+﻿using Oracle.ManagedDataAccess.Client;
 using System;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Xml;
@@ -18,9 +18,9 @@ namespace Frends.Community.Oracle.Query
         /// <param name="queryProperties"></param>
         /// <param name="options"></param>
         /// <returns>Object { bool Success, string Message, string Result }</returns>
-        public static Output Query([CustomDisplay(DisplayOption.Tab)]ConnectionProperties database, 
-            [CustomDisplay(DisplayOption.Tab)]QueryProperties queryProperties, 
-            [CustomDisplay(DisplayOption.Tab)]Options options)
+        public static Output Query([PropertyTab]ConnectionProperties database,
+             [PropertyTab]QueryProperties queryProperties,
+             [PropertyTab]Options options)
         {
             try
             {
