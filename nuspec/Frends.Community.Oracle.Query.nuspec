@@ -2,14 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Frends.Community.Oracle.Query</id>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <title>Frends Community Oracle Query Task</title>
     <authors>HiQ Finland</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Task for performing query commands in Oracle databases</description>
     <summary />
     <dependencies>
-      <dependency id="Frends.Tasks.Attributes" version="1.2.0" />
       <dependency id="Oracle.ManagedDataAccess" version="12.2.1100" />
       <dependency id="Newtonsoft.Json" version="10.0.2" />
     </dependencies>
