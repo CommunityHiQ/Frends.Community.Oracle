@@ -26,7 +26,7 @@ Executes query against Oracle database.
 | ------------| -----------| --------------- | ------- |
 | Connection string | string | Oracle database connection string | Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE))) |
 | Timeout seconds | int | Query timeout in seconds | 60 |
-| Query | string | The query to execute | |
+| Query | string | The query to execute | SELECT * FROM Table WHERE field = :paramName|
 | Return type | enum<Json, Xml> | Data return type format | Json |
 | Culture info | string | Specify the culture info to be used when parsing result to JSON. If this is left empty InvariantCulture will be used. [List of cultures](https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx) Use the Language Culture Name. | fi-FI |
 | Parameters | array[Query Parameter] | Possible query parameters. See [Query Parameter](#query-parameter) |  |
@@ -36,7 +36,7 @@ Executes query against Oracle database.
 
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Name | string | Parameter name used in Query property | @username |
+| Name | string | Parameter name used in Query property | username |
 | Value | string | Parameter value | myUser |
 | Data type | enum<> | Parameter data type | NVarchar2 |
 
