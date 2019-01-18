@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Frends.Community.Oracle.Query</id>
-    <version>1.1.0</version>
+    <version>1.1.6</version>
     <title>Frends Community Oracle Query Task</title>
     <authors>HiQ Finland</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>

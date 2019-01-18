@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using Oracle.ManagedDataAccess.Client;
+using Oracle.ManagedDataAccess.Types;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -36,8 +37,17 @@ namespace Frends.Community.Oracle.Query
                     {
                         // add row element name
                         writer.WritePropertyName(reader.GetName(i));
-                        // add row element value
-                        writer.WriteValue(reader.GetValue(i) ?? string.Empty);
+
+                        switch(reader.GetDataTypeName(i))
+                        {
+                            case "Decimal":
+                                writer.WriteValue((decimal)(OracleDecimal.SetPrecision(reader.GetOracleDecimal(i), 28)));
+                                break;
+                            default:
+                                writer.WriteValue(reader.GetValue(i) ?? string.Empty);
+                                break;
+                        }
+                            
                     }
                     writer.WriteEndObject(); // end row object
                 }
