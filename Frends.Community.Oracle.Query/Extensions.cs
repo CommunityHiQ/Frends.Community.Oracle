@@ -41,7 +41,11 @@ namespace Frends.Community.Oracle.Query
                         switch(reader.GetDataTypeName(i))
                         {
                             case "Decimal":
-                                writer.WriteValue((decimal)(OracleDecimal.SetPrecision(reader.GetOracleDecimal(i), 28)));
+                                // FCOM-204 fix; proper handling of decimal values and NULL values in decimal type fields
+                                var FieldValue = OracleDecimal.SetPrecision(reader.GetOracleDecimal(i), 28);
+
+                                if (!FieldValue.IsNull) writer.WriteValue((decimal)FieldValue);
+                                else writer.WriteValue(string.Empty);
                                 break;
                             default:
                                 writer.WriteValue(reader.GetValue(i) ?? string.Empty);
