@@ -21,7 +21,7 @@ namespace Frends.Community.Oracle.Query.Tests
         public void Setup()
         {
             _conn = new ConnectionProperties();
-            _conn.ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=xe)));User Id=SYSTEM;Password=S1kretP4sswurd;";
+            _conn.ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=xe)));User Id=SYSTEM;Password=<YourPasswordHere>;";
             _conn.TimeoutSeconds = 300;
         }
 
@@ -29,6 +29,7 @@ namespace Frends.Community.Oracle.Query.Tests
         /// A simple query that fetches a decimal value from the database
         /// </summary>
         [Test]
+        [Ignore("Cannot be run unless you have a properly configured Oracle DB running on your local computer")]
         public void QueryDatabaseJSON()
         {
             /*
