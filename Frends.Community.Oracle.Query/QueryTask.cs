@@ -1,9 +1,9 @@
 ﻿using Oracle.ManagedDataAccess.Client;
 using System;
 using System.ComponentModel;
-using System.Data;
 using System.Linq;
-using System.Xml;
+using System.Threading;
+using System.Threading.Tasks;
 
 #pragma warning disable 1591
 
@@ -14,54 +14,50 @@ namespace Frends.Community.Oracle.Query
         /// <summary>
         /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
         /// </summary>
-        /// <param name="database"></param>
-        /// <param name="queryProperties"></param>
+        /// <param name="query"></param>
+        /// <param name="output"></param>
+        /// <param name="connection"></param>
         /// <param name="options"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns>Object { bool Success, string Message, string Result }</returns>
-        public static Output Query([PropertyTab]ConnectionProperties database,
-            [PropertyTab]QueryProperties queryProperties,
-            [PropertyTab]Options options)
+        public static async Task<Output> Query(
+            [PropertyTab] QueryProperties query,
+            [PropertyTab] OutputProperties output,
+            [PropertyTab] ConnectionProperties connection,
+            [PropertyTab] Options options,
+            CancellationToken cancellationToken)
         {
             try
             {
-                using (var connection = new OracleConnection(database.ConnectionString))
+                using (var c = new OracleConnection(connection.ConnectionString))
                 {
                     try
                     {
-                        connection.Open();
+                        await c.OpenAsync();
 
-                        using (var command = new OracleCommand(queryProperties.Query, connection))
+                        using (var command = new OracleCommand(query.Query, c))
                         {
-                            command.CommandTimeout = database.TimeoutSeconds;
+                            command.CommandTimeout = connection.TimeoutSeconds;
                             command.BindByName = true; // is this xmlCommand specific?
 
                             // check for command parameters and set them
-                            if (queryProperties.Parameters != null)
-                                command.Parameters.AddRange(queryProperties.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
+                            if (query.Parameters != null)
+                                command.Parameters.AddRange(query.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
 
                             // declare Result object
                             string queryResult;
 
                             // set commandType according to ReturnType
-                            switch (queryProperties.ReturnType)
+                            switch (output.ReturnType)
                             {
                                 case QueryReturnType.Xml:
-                                    command.XmlCommandType = OracleXmlCommandType.Query;
-                                    command.XmlQueryProperties.MaxRows = queryProperties.MaxmimumRows;
-                                    command.XmlQueryProperties.RootTag = queryProperties.RootElementName;
-                                    command.XmlQueryProperties.RowTag = queryProperties.RowElementName;
-
-                                    var xmlReader = command.ExecuteXmlReader();
-                                    var xmlDocument = new XmlDocument { PreserveWhitespace = true };
-                                    xmlDocument.Load(xmlReader);
-                                    // assign query result XML or empty XML if query returned no results
-                                    queryResult = xmlDocument.HasChildNodes ? xmlDocument.OuterXml : $"<{queryProperties.RootElementName}></{queryProperties.RootElementName}>";
+                                    queryResult = await command.ToXmlAsync(output, cancellationToken);
                                     break;
-
                                 case QueryReturnType.Json:
-                                    command.CommandType = CommandType.Text;
-                                    var reader = command.ExecuteReader();
-                                    queryResult = reader.ToJson(queryProperties.CultureInfo);
+                                    queryResult = await command.ToJsonAsync(output, cancellationToken);
+                                    break;
+                                case QueryReturnType.Csv:
+                                    queryResult = await command.ToCsvAsync(output, cancellationToken);
                                     break;
                                 default:
                                     throw new ArgumentException("Task 'Return Type' was invalid! Check task properties.");
@@ -70,13 +66,16 @@ namespace Frends.Community.Oracle.Query
                             return new Output { Success = true, Result = queryResult };
                         }
                     }
-                    catch (Exception ex) { throw ex; }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
                     finally
                     {
                         // Close connection
-                        connection.Dispose();
-                        connection.Close();
-                        OracleConnection.ClearPool(connection);
+                        c.Dispose();
+                        c.Close();
+                        OracleConnection.ClearPool(c);
                     }
                 }
             }
