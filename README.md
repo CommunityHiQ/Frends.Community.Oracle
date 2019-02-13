@@ -40,25 +40,25 @@ Executes query against Oracle database.
 | Return type | enum<Json, Xml, Csv> | Data return type format | `Json` |
 | OutputToFile | bool | true to write results to a file, false to return results to executin process | `true` |
 
-### XmlOutputProperties
+#### Xml Output
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | RootElementName | string | Xml root element name | `items` |
 | RowElementName |string | Xml row element name | `item` |
 | MaximumRows | int | The maximum amount of rows to return; defaults to -1 eg. no limit | `1000` |
 
-### JsonOutputProperties
+#### Json Output
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Culture info | string | Specify the culture info to be used when parsing result to JSON. If this is left empty InvariantCulture will be used. [List of cultures](https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx) Use the Language Culture Name. | `fi-FI` |
 
-### CsvOutputProperties
+#### Csv Output
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | IncludeHeaders | bool | Include field names in the first row | `true` |
 | CsvSeparator | string | Csv separator to use in headers and data items | `;` |
 
-### OutputFileProperties
+#### Output File
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Path | string | Output path with file name | `c:\temp\output.json` |
@@ -77,7 +77,7 @@ Executes query against Oracle database.
 | ------------| -----------| --------------- | ------- |
 | Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
 
-#### Result
+### Result
 
 Object { bool Success, string Message, string Result }
 
