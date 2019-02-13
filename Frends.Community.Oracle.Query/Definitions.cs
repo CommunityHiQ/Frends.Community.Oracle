@@ -15,25 +15,9 @@ namespace Frends.Community.Oracle.Query
         NVarchar2, Varchar2, NChar, Char, Int16, Int32, Int64, Double, Decimal, Long, LongRaw, Boolean, Date, TimeStamp, TimeStampLTZ, TimeStampTZ, XmlType, Raw, BFile, BinaryDouble, BinaryFloat, Blob, Byte, Clob, NClob, IntervalDS, IntervalYM, RefCursor, Single
     }
 
-    public class ConnectionProperties
-    {
-        /// <summary>
-        /// Oracle connection string
-        /// </summary>
-        [DisplayFormat(DataFormatString = "Text")]
-        [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
-        public string ConnectionString { get; set; }
-
-        /// <summary>
-        /// Timeout value in seconds
-        /// </summary>
-        [DefaultValue(30)]
-        public int TimeoutSeconds { get; set; }
-    }
-
     public class QueryProperties
     {
-        [DisplayFormat(DataFormatString = "Text")]
+        [DisplayFormat(DataFormatString = "Sql")]
         [DefaultValue("SELECT ColumnName FROM TableName")]
         public string Query { get; set; }
 
@@ -41,6 +25,29 @@ namespace Frends.Community.Oracle.Query
         /// Parameters for the database query
         /// </summary>
         public QueryParameter[] Parameters { get; set; }
+    }
+
+    public class QueryParameter
+    {
+        /// <summary>
+        /// The name of the parameter
+        /// </summary>
+        [DefaultValue("ParameterName")]
+        [DisplayFormat(DataFormatString = "Text")]
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The value of the parameter
+        /// </summary>
+        [DefaultValue("Parameter value")]
+        [DisplayFormat(DataFormatString = "Text")]
+        public dynamic Value { get; set; }
+
+        /// <summary>
+        /// The type of the parameter
+        /// </summary>
+        [DefaultValue(QueryParameterType.NVarchar2)]
+        public QueryParameterType DataType { get; set; }
     }
 
     public class OutputProperties
@@ -69,7 +76,6 @@ namespace Frends.Community.Oracle.Query
         /// <summary>
         /// In case user wants to write results to a file instead of returning them to process
         /// </summary>
-        [UIHint(nameof(ReturnType), "", QueryReturnType.Csv)]
         public bool OutputToFile { get; set; }
 
         /// <summary>
@@ -79,27 +85,20 @@ namespace Frends.Community.Oracle.Query
         public OutputFileProperties OutputFile { get; set; }
     }
 
-    public class QueryParameter
+    public class ConnectionProperties
     {
         /// <summary>
-        /// The name of the parameter
+        /// Oracle connection string
         /// </summary>
-        [DefaultValue("ParameterName")]
         [DisplayFormat(DataFormatString = "Text")]
-        public string Name { get; set; }
+        [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
+        public string ConnectionString { get; set; }
 
         /// <summary>
-        /// The value of the parameter
+        /// Timeout value in seconds
         /// </summary>
-        [DefaultValue("Parameter value")]
-        [DisplayFormat(DataFormatString = "Text")]
-        public dynamic Value { get; set; }
-
-        /// <summary>
-        /// The type of the parameter
-        /// </summary>
-        [DefaultValue(QueryParameterType.NVarchar2)]
-        public QueryParameterType DataType { get; set; }
+        [DefaultValue(30)]
+        public int TimeoutSeconds { get; set; }
     }
 
     public class Options
