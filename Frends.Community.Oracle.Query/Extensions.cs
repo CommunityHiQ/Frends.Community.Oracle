@@ -75,45 +75,6 @@ namespace Frends.Community.Oracle.Query
         }
 
         /// <summary>
-        /// Write query results to xml string or to a file
-        /// </summary>
-        /// <param name="command"></param>
-        /// <param name="output"></param>
-        /// <returns></returns>
-        public static string ToXml(this OracleCommand command, OutputProperties output)
-        {
-            command.XmlCommandType = OracleXmlCommandType.Query;
-            command.XmlQueryProperties.MaxRows = output.XmlOutput.MaxmimumRows;
-            command.XmlQueryProperties.RootTag = output.XmlOutput.RootElementName;
-            command.XmlQueryProperties.RowTag = output.XmlOutput.RowElementName;
-            
-            using (XmlReader xmlReader = command.ExecuteXmlReader())
-            {
-                var xmlDocument = new XmlDocument { PreserveWhitespace = true };
-                xmlDocument.Load(xmlReader);
-                
-                if (output.OutputToFile)
-                {
-                    // utf-8 as default encoding
-                    Encoding encoding = string.IsNullOrWhiteSpace(output.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(output.OutputFile.Encoding);
-
-                    // write to an xml file
-                    using (var writer = new XmlTextWriter(output.OutputFile.Path, encoding))
-                    {
-                        xmlDocument.Save(writer);
-                    }
-
-                    return output.OutputFile.Path;
-                }
-                else
-                {
-                    // assign query result XML or empty XML if query returned no results
-                    return xmlDocument.HasChildNodes ? xmlDocument.OuterXml : $"<{output.XmlOutput.RootElementName}></{output.XmlOutput.RootElementName}>";
-                }
-            }
-        }
-
-        /// <summary>
         /// Write query results to json string or file
         /// </summary>
         /// <param name="command"></param>
@@ -139,19 +100,19 @@ namespace Frends.Community.Oracle.Query
                     writer.Culture = culture;
 
                     // start array
-                    await writer.WriteStartArrayAsync();
+                    await writer.WriteStartArrayAsync(cancellationToken);
 
                     cancellationToken.ThrowIfCancellationRequested();
 
                     while (reader.Read())
                     {
                         // start row object
-                        await writer.WriteStartObjectAsync();
+                        await writer.WriteStartObjectAsync(cancellationToken);
 
                         for (var i = 0; i < reader.FieldCount; i++)
                         {
                             // add row element name
-                            await writer.WritePropertyNameAsync(reader.GetName(i));
+                            await writer.WritePropertyNameAsync(reader.GetName(i), cancellationToken);
                             
                             // add row element value
                             switch (reader.GetDataTypeName(i))
@@ -161,24 +122,24 @@ namespace Frends.Community.Oracle.Query
                                     OracleDecimal v = reader.GetOracleDecimal(i);
                                     var FieldValue = OracleDecimal.SetPrecision(v, 28);
 
-                                    if (!FieldValue.IsNull) await writer.WriteValueAsync((decimal)FieldValue);
-                                    else await writer.WriteValueAsync(string.Empty);
+                                    if (!FieldValue.IsNull) await writer.WriteValueAsync((decimal)FieldValue, cancellationToken);
+                                    else await writer.WriteValueAsync(string.Empty, cancellationToken);
                                     break;
                                 default:
-                                    await writer.WriteValueAsync(reader.GetValue(i) ?? string.Empty);
+                                    await writer.WriteValueAsync(reader.GetValue(i) ?? string.Empty, cancellationToken);
                                     break;
                             }
 
                             cancellationToken.ThrowIfCancellationRequested();
                         }
 
-                        await writer.WriteEndObjectAsync(); // end row object
+                        await writer.WriteEndObjectAsync(cancellationToken); // end row object
 
                         cancellationToken.ThrowIfCancellationRequested();
                     }
 
                     // end array
-                    await writer.WriteEndArrayAsync();
+                    await writer.WriteEndArrayAsync(cancellationToken);
 
                     if (output.OutputToFile)
                     {

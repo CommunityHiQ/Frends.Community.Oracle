@@ -33,7 +33,7 @@ namespace Frends.Community.Oracle.Query
                 {
                     try
                     {
-                        await c.OpenAsync();
+                        await c.OpenAsync(cancellationToken);
 
                         using (var command = new OracleCommand(query.Query, c))
                         {
