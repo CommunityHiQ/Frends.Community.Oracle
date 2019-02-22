@@ -20,29 +20,68 @@ You can install the task via FRENDS UI Task View or you can find the nuget packa
 
 Executes query against Oracle database.
 
-### Properties
-
+### Query Properties
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Connection string | string | Oracle database connection string | Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE))) |
-| Timeout seconds | int | Query timeout in seconds | 60 |
-| Query | string | The query to execute | SELECT * FROM Table WHERE field = :paramName|
-| Return type | enum<Json, Xml> | Data return type format | Json |
-| Culture info | string | Specify the culture info to be used when parsing result to JSON. If this is left empty InvariantCulture will be used. [List of cultures](https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx) Use the Language Culture Name. | fi-FI |
+| Query | string | The query to execute | `SELECT * FROM Table WHERE field = :paramName`|
 | Parameters | array[Query Parameter] | Possible query parameters. See [Query Parameter](#query-parameter) |  |
-| Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | false |
 
 #### Query Parameter
 
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Name | string | Parameter name used in Query property | username |
-| Value | string | Parameter value | myUser |
-| Data type | enum<> | Parameter data type | NVarchar2 |
+| Name | string | Parameter name used in Query property | `username` |
+| Value | string | Parameter value | `myUser` |
+| Data type | enum<> | Parameter data type | `NVarchar2` |
 
-#### Result
+### Output
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Return type | enum<Json, Xml, Csv> | Data return type format | `Json` |
+| OutputToFile | bool | true to write results to a file, false to return results to executin process | `true` |
+
+#### Xml Output
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| RootElementName | string | Xml root element name | `items` |
+| RowElementName |string | Xml row element name | `item` |
+| MaximumRows | int | The maximum amount of rows to return; defaults to -1 eg. no limit | `1000` |
+
+#### Json Output
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Culture info | string | Specify the culture info to be used when parsing result to JSON. If this is left empty InvariantCulture will be used. [List of cultures](https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx) Use the Language Culture Name. | `fi-FI` |
+
+#### Csv Output
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| IncludeHeaders | bool | Include field names in the first row | `true` |
+| CsvSeparator | string | Csv separator to use in headers and data items | `;` |
+
+#### Output File
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Path | string | Output path with file name | `c:\temp\output.json` |
+| Encoding | string | Encoding to use for the output file | `utf-8` |
+
+### Connection
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
+| Timeout seconds | int | Query timeout in seconds | `60` |
+
+### Options
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
+
+### Result
 
 Object { bool Success, string Message, string Result }
+
+If output type is file, then _Result_ indicates the written file path. Otherwise it will hold the query output in xml, json or csv.
 
 Example result with return type JSON
 
@@ -54,18 +93,20 @@ Example result with return type JSON
  {
   "Name": "Teela",
   "Age": 42,
-  "Address" : "Test road 123"
+  "Address": "Test road 123"
  },
  {
   "Name": "Adam",
   "Age": 42,
-  "Address" : null
+  "Address": null
  }
 ]
 ```
 
+
+To access query result, use 
 ```
-To access query result, use #result.Result
+#result.Result
 ```
 
 # Building
@@ -104,3 +145,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | Version | Changes |
 | ----- | ----- |
 | 1.0.0 | Initial version of Oracle Query Task |
+| 2.0.0 | Breaking changes: target .netstandard, more user friendly task settings, csv output, all output types are now possibly to stream directly into a file |
