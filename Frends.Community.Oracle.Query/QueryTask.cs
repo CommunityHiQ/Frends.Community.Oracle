@@ -100,7 +100,7 @@ namespace Frends.Community.Oracle.Query
         public static async Task<Output> QueryToFile(
             [PropertyTab] QueryProperties query,
             [PropertyTab] SaveQueryToCsvOptions output,
-            ConnectionProperties connection,
+            [PropertyTab] ConnectionProperties connection,
             [PropertyTab] Options options,
             CancellationToken cancellationToken)
         {
