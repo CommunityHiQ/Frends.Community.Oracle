@@ -66,9 +66,64 @@ namespace Frends.Community.Oracle.Query
                             return new Output { Success = true, Result = queryResult };
                         }
                     }
-                    catch (Exception ex)
+                    finally
                     {
-                        throw ex;
+                        // Close connection
+                        c.Dispose();
+                        c.Close();
+                        OracleConnection.ClearPool(c);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (options.ThrowErrorOnFailure)
+                    throw;
+                return new Output
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Task for performing queries in Oracle databases and save result to csv. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="output"></param>
+        /// <param name="connection"></param>
+        /// <param name="options"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Object { bool Success, string Message, string Result } </returns>
+        /// <exception cref="Exception"></exception>
+        public static async Task<Output> QueryToFile(
+            [PropertyTab] QueryProperties query,
+            [PropertyTab] SaveQueryToCsvOptions output,
+            ConnectionProperties connection,
+            [PropertyTab] Options options,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                using (var c = new OracleConnection(connection.ConnectionString))
+                {
+                    try
+                    {
+                        await c.OpenAsync(cancellationToken);
+
+                        using (var command = new OracleCommand(query.Query, c))
+                        {
+                            command.CommandTimeout = connection.TimeoutSeconds;
+                            command.BindByName = true; // is this xmlCommand specific?
+
+                            // check for command parameters and set them
+                            if (query.Parameters != null)
+                                command.Parameters.AddRange(query.Parameters.Select(p => CreateOracleParameter(p))
+                                    .ToArray());
+                            var result = await command.ToCsvFileAsync(output, cancellationToken);
+                            return new Output { Success = true, Result = result.ToString() };
+                        }
                     }
                     finally
                     {
@@ -82,7 +137,7 @@ namespace Frends.Community.Oracle.Query
             catch (Exception ex)
             {
                 if (options.ThrowErrorOnFailure)
-                    throw ex;
+                    throw;
                 return new Output
                 {
                     Success = false,
