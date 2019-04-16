@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 #pragma warning disable 1591
@@ -196,4 +197,123 @@ namespace Frends.Community.Oracle.Query
         [DefaultValue("utf-8")]
         public string Encoding { get; set; }
     }
+
+    #region QueryToFileTask
+
+    public class SaveQueryToCsvParameters
+    {
+       
+    }
+
+    /// <summary>
+    /// CSV field delimeter options
+    /// </summary>
+    public enum CsvFieldDelimiter
+    {
+        Comma,
+        Semicolon,
+        Pipe
+    }
+
+    /// <summary>
+    /// CSV line break options
+    /// </summary>
+    public enum CsvLineBreak
+    {
+        CRLF,
+        LF,
+        CR
+    }
+
+    public class SaveQueryToCsvOptions
+    {
+        /// <summary>
+        /// Output file path
+        /// </summary>
+        [DefaultValue("")]
+        public string OutputFilePath { get; set; }
+
+        /// <summary>
+        /// Columns to include in the CSV output. Leave empty to include all columns in output.
+        /// </summary>
+        public string[] ColumnsToInclude { get; set; }
+
+        /// <summary>
+        /// What to use as field separators
+        /// </summary>
+        [DefaultValue(CsvFieldDelimiter.Semicolon)]
+        public CsvFieldDelimiter FieldDelimiter { get; set; } = CsvFieldDelimiter.Semicolon;
+
+        /// <summary>
+        /// What to use as line breaks
+        /// </summary>
+        [DefaultValue(CsvLineBreak.CRLF)]
+        public CsvLineBreak LineBreak { get; set; } = CsvLineBreak.CRLF;
+
+        /// <summary>
+        /// Whether to include headers in output
+        /// </summary>
+        [DefaultValue(true)]
+        public bool IncludeHeadersInOutput { get; set; } = true;
+
+        /// <summary>
+        /// Whether to sanitize headers in output:
+        /// - Strip any chars that are not 0-9, a-z or _
+        /// - Make sure that column does not start with a number or underscore
+        /// - Force lower case
+        /// </summary>
+        [DefaultValue(true)]
+        public bool SanitizeColumnHeaders { get; set; } = true;
+
+        /// <summary>
+        /// Whether to add quotes around DATE and DATETIME fields
+        /// </summary>
+        [DefaultValue(true)]
+        public bool AddQuotesToDates { get; set; } = true;
+
+        /// <summary>
+        /// Date format to use for formatting DATE columns, use .NET formatting tokens.
+        /// Note that formatting is done using invariant culture.
+        /// </summary>
+        [DefaultValue("\"yyyy-MM-dd\"")]
+        public string DateFormat { get; set; } = "yyyy-MM-dd";
+
+        /// <summary>
+        /// Date format to use for formatting DATETIME columns, use .NET formatting tokens.
+        /// Note that formatting is done using invariant culture.
+        /// </summary>
+        [DefaultValue("\"yyyy-MM-dd HH:mm:ss\"")]
+        public string DateTimeFormat { get; set; } = "yyyy-MM-dd HH:mm:ss";
+
+        public string GetFieldDelimiterAsString()
+        {
+            switch (FieldDelimiter)
+            {
+                case CsvFieldDelimiter.Comma:
+                    return ",";
+                case CsvFieldDelimiter.Pipe:
+                    return "|";
+                case CsvFieldDelimiter.Semicolon:
+                    return ";";
+                default:
+                    throw new Exception($"Unknown field delimiter: {FieldDelimiter}");
+            }
+        }
+        public string GetLineBreakAsString()
+        {
+            switch (LineBreak)
+            {
+                case CsvLineBreak.CRLF:
+                    return "\r\n";
+                case CsvLineBreak.CR:
+                    return "\r";
+                case CsvLineBreak.LF:
+                    return "\n";
+                default:
+                    throw new Exception($"Unknown field delimiter: {FieldDelimiter}");
+            }
+        }
+    }
+
+    #endregion
 }

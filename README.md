@@ -5,6 +5,7 @@ FRENDS 4 Task for querying data from Oracle database
 - [Installing](#installing)
 - [Task](#tasks)
 	- [Query](#query)
+	- [QueryToFile](#querytofile)
 - [Building](#building)
 - [Contributing](#contributing)
 - [Change Log](#change-log)
@@ -102,7 +103,64 @@ Example result with return type JSON
  }
 ]
 ```
+## QueryToFile
 
+Executes query against Oracle database and outputs result to csv.
+
+### Query Properties
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Query | string | The query to execute | `SELECT * FROM Table WHERE field = :paramName`|
+| Parameters | array[Query Parameter] | Possible query parameters. See [Query Parameter](#query-parameter) |  |
+
+#### Query Parameter
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Name | string | Parameter name used in Query property | `username` |
+| Value | string | Parameter value | `myUser` |
+| Data type | enum<> | Parameter data type | `NVarchar2` |
+
+### Output
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| OutputFilePath | string | Output path with file name | `c:\temp\output.json` |
+| ColumnsToInclude | string[] | Columns to include in the output CSV. If no columns defined here then all columns will be written to output CSV. | `[id, name, value]` |
+| FieldDelimiter | enum { Comma, Semicolon, Pipe } | Field delimeter to use in output CSV | Comma |
+| LineBreak | enum { CR, LF, CRLF } | Line break style to use in output CSV. | CRLF |
+| IncludeHeadersInOutput | bool | Wherther to include headers in output CSV. | `true` |
+| SanitizeColumnHeaders | bool | Whether to sanitize headers in output: (1) Strip any chars that are not 0-9, a-z or _ (2) Make sure that column does not start with a number or underscore (3) Force lower case | `true` |
+| AddQuotesToDates | bool | Whether to add quotes around DATE and DATETIME fields | `true` |
+| DateFormat | string | Date format to use for formatting DATE columns, use .NET formatting tokens. Note that formatting is done using invariant culture. | `yyyy-MM-dd` |
+| DateTimeFormat | string | Date format to use for formatting DATETIME columns, use .NET formatting tokens. Note that formatting is done using invariant culture. | `yyyy-MM-dd HH:mm:ss` |
+
+### Connection
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
+| Timeout seconds | int | Query timeout in seconds | `60` |
+
+### Options
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
+
+### Notes
+Newlines in text fields are replaced with spaces.
+
+### Result
+
+Object { bool Success, string Message, string Result }
+
+Result contains the amount of lines written to output csv
+
+Example result with return type JSON
+
+*Success:* ``` True ```
+*Message:* ``` null ```
+*Result:* ``` 1 ```
 
 To access query result, use 
 ```
