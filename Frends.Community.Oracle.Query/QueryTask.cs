@@ -88,7 +88,7 @@ namespace Frends.Community.Oracle.Query
         }
 
         /// <summary>
-        /// Task for performing queries in Oracle databases and save result to csv. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
+        /// Task for performing queries in Oracle databases and saves result to csv. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
         /// </summary>
         /// <param name="query"></param>
         /// <param name="output"></param>
@@ -96,7 +96,6 @@ namespace Frends.Community.Oracle.Query
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Object { bool Success, string Message, string Result } </returns>
-        /// <exception cref="Exception"></exception>
         public static async Task<Output> QueryToFile(
             [PropertyTab] QueryProperties query,
             [PropertyTab] SaveQueryToCsvOptions output,
@@ -146,7 +145,7 @@ namespace Frends.Community.Oracle.Query
             }
         }
 
-        public static OracleParameter CreateOracleParameter(QueryParameter parameter)
+        internal static OracleParameter CreateOracleParameter(QueryParameter parameter)
         {
             return new OracleParameter()
             {

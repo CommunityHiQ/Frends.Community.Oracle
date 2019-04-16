@@ -68,117 +68,117 @@ namespace Frends.Community.Oracle.Query.Tests
             File.Delete(result.Result);
         }
         
-        [Test]
-        public void FormatDbValue_String()
-        {
-            var options = new SaveQueryToCsvOptions { FieldDelimiter = CsvFieldDelimiter.Semicolon };
-            // Basic case
-            Assert.AreEqual(
-                "\"hello, world\"",
-                Extensions.FormatDbValue("hello, world", null, typeof(string), options));
+        //[Test]
+        //public void FormatDbValue_String()
+        //{
+        //    var options = new SaveQueryToCsvOptions { FieldDelimiter = CsvFieldDelimiter.Semicolon };
+        //    // Basic case
+        //    Assert.AreEqual(
+        //        "\"hello, world\"",
+        //        Extensions.FormatDbValue("hello, world", null, typeof(string), options));
 
-            // Quotes should be escaped
-            Assert.AreEqual(
-                "\"hello\\\" world\"",
-                Extensions.FormatDbValue("hello\" world", null, typeof(string), options));
+        //    // Quotes should be escaped
+        //    Assert.AreEqual(
+        //        "\"hello\\\" world\"",
+        //        Extensions.FormatDbValue("hello\" world", null, typeof(string), options));
 
-            // Newlines should be replaced by spaces
-            Assert.AreEqual(
-                "\"hello world\"",
-                Extensions.FormatDbValue("hello\rworld", null, typeof(string), options));
-            Assert.AreEqual(
-                "\"hello world\"",
-                Extensions.FormatDbValue("hello\r\nworld", null, typeof(string), options));
-            Assert.AreEqual(
-                "\"hello world\"",
-                Extensions.FormatDbValue("hello\nworld", null, typeof(string), options));
-        }
+        //    // Newlines should be replaced by spaces
+        //    Assert.AreEqual(
+        //        "\"hello world\"",
+        //        Extensions.FormatDbValue("hello\rworld", null, typeof(string), options));
+        //    Assert.AreEqual(
+        //        "\"hello world\"",
+        //        Extensions.FormatDbValue("hello\r\nworld", null, typeof(string), options));
+        //    Assert.AreEqual(
+        //        "\"hello world\"",
+        //        Extensions.FormatDbValue("hello\nworld", null, typeof(string), options));
+        //}
 
-        [Test]
-        public void FormatDbValue_DateTime()
-        {
-            var options = new SaveQueryToCsvOptions
-            {
-                FieldDelimiter = CsvFieldDelimiter.Semicolon,
-                DateFormat = "dd-MM_yyyy",
-                DateTimeFormat = "dd-MM_yyyy HH:mm:ss",
-                AddQuotesToDates = false,
-            };
+        //[Test]
+        //public void FormatDbValue_DateTime()
+        //{
+        //    var options = new SaveQueryToCsvOptions
+        //    {
+        //        FieldDelimiter = CsvFieldDelimiter.Semicolon,
+        //        DateFormat = "dd-MM_yyyy",
+        //        DateTimeFormat = "dd-MM_yyyy HH:mm:ss",
+        //        AddQuotesToDates = false,
+        //    };
 
-            // Date
-            Assert.AreEqual(
-                "31-12_2018",
-                Extensions.FormatDbValue(DateTime.Parse("2018-12-31T11:22:33"), "DAte", typeof(DateTime), options));
+        //    // Date
+        //    Assert.AreEqual(
+        //        "31-12_2018",
+        //        Extensions.FormatDbValue(DateTime.Parse("2018-12-31T11:22:33"), "DAte", typeof(DateTime), options));
 
-            // Datetime
-            Assert.AreEqual(
-                "31-12_2018 11:22:33",
-                Extensions.FormatDbValue(DateTime.Parse("2018-12-31T11:22:33"), "DAteTIME", typeof(DateTime), options));
+        //    // Datetime
+        //    Assert.AreEqual(
+        //        "31-12_2018 11:22:33",
+        //        Extensions.FormatDbValue(DateTime.Parse("2018-12-31T11:22:33"), "DAteTIME", typeof(DateTime), options));
 
-            options.AddQuotesToDates = true;
+        //    options.AddQuotesToDates = true;
 
-            // Date
-            Assert.AreEqual(
-                "\"31-12_2018\"",
-                Extensions.FormatDbValue(DateTime.Parse("2018-12-31T11:22:33"), "DAte", typeof(DateTime), options));
+        //    // Date
+        //    Assert.AreEqual(
+        //        "\"31-12_2018\"",
+        //        Extensions.FormatDbValue(DateTime.Parse("2018-12-31T11:22:33"), "DAte", typeof(DateTime), options));
 
-            // Datetime
-            Assert.AreEqual(
-                "\"31-12_2018 11:22:33\"",
-                Extensions.FormatDbValue(DateTime.Parse("2018-12-31T11:22:33"), "DAteTIME", typeof(DateTime), options));
-        }
+        //    // Datetime
+        //    Assert.AreEqual(
+        //        "\"31-12_2018 11:22:33\"",
+        //        Extensions.FormatDbValue(DateTime.Parse("2018-12-31T11:22:33"), "DAteTIME", typeof(DateTime), options));
+        //}
 
-        [Test]
-        public void FormatDbValue_Nulls()
-        {
-            var options = new SaveQueryToCsvOptions();
+        //[Test]
+        //public void FormatDbValue_Nulls()
+        //{
+        //    var options = new SaveQueryToCsvOptions();
 
-            Assert.AreEqual(
-                "",
-                Extensions.FormatDbValue(null, "DOUBLE", typeof(double), options));
+        //    Assert.AreEqual(
+        //        "",
+        //        Extensions.FormatDbValue(null, "DOUBLE", typeof(double), options));
 
-            // All string and date/datetime types should be quoted, including nulls
-            Assert.AreEqual(
-                "\"\"",
-                Extensions.FormatDbValue(DBNull.Value, "DATE", typeof(DateTime), options));
+        //    // All string and date/datetime types should be quoted, including nulls
+        //    Assert.AreEqual(
+        //        "\"\"",
+        //        Extensions.FormatDbValue(DBNull.Value, "DATE", typeof(DateTime), options));
 
-            Assert.AreEqual(
-                "\"\"",
-                Extensions.FormatDbValue(DBNull.Value, "DATETIME", typeof(DateTime), options));
-            Assert.AreEqual(
-                "\"\"",
-                Extensions.FormatDbValue(DBNull.Value, "NVARCHAR", typeof(string), options));
-        }
+        //    Assert.AreEqual(
+        //        "\"\"",
+        //        Extensions.FormatDbValue(DBNull.Value, "DATETIME", typeof(DateTime), options));
+        //    Assert.AreEqual(
+        //        "\"\"",
+        //        Extensions.FormatDbValue(DBNull.Value, "NVARCHAR", typeof(string), options));
+        //}
 
-        [Test]
-        public void FormatDbValue_FloatDoubleDecimal()
-        {
-            var options = new SaveQueryToCsvOptions();
-            // Float
-            Assert.AreEqual(
-                "1234.543",
-                Extensions.FormatDbValue((float)1234.543, "FLOAT", typeof(float), options));
-            // Double
-            Assert.AreEqual(
-                "1234.543",
-                Extensions.FormatDbValue(1234.543, "DOUBLE", typeof(double), options));
-            // Float
-            Assert.AreEqual(
-                "1234.543",
-                Extensions.FormatDbValue((decimal)1234.543, "DECIMAL", typeof(decimal), options));
-        }
+        //[Test]
+        //public void FormatDbValue_FloatDoubleDecimal()
+        //{
+        //    var options = new SaveQueryToCsvOptions();
+        //    // Float
+        //    Assert.AreEqual(
+        //        "1234.543",
+        //        Extensions.FormatDbValue((float)1234.543, "FLOAT", typeof(float), options));
+        //    // Double
+        //    Assert.AreEqual(
+        //        "1234.543",
+        //        Extensions.FormatDbValue(1234.543, "DOUBLE", typeof(double), options));
+        //    // Float
+        //    Assert.AreEqual(
+        //        "1234.543",
+        //        Extensions.FormatDbValue((decimal)1234.543, "DECIMAL", typeof(decimal), options));
+        //}
 
-        [Test]
-        public void FormatDbHeader()
-        {
-            // Basic case
-            Assert.AreEqual(
-                "123_hello!!! THIS IS MADNESS",
-                Extensions.FormatDbHeader("123_hello!!! THIS IS MADNESS", false));
-            // Sanitize it!
-            Assert.AreEqual(
-                "hellothisis5anitiz3d_madness",
-                Extensions.FormatDbHeader("123_hello!!! THIS IS 5aNiTiZ3D_MADNESS", true));
-        }
+        //[Test]
+        //public void FormatDbHeader()
+        //{
+        //    // Basic case
+        //    Assert.AreEqual(
+        //        "123_hello!!! THIS IS MADNESS",
+        //        Extensions.FormatDbHeader("123_hello!!! THIS IS MADNESS", false));
+        //    // Sanitize it!
+        //    Assert.AreEqual(
+        //        "hellothisis5anitiz3d_madness",
+        //        Extensions.FormatDbHeader("123_hello!!! THIS IS 5aNiTiZ3D_MADNESS", true));
+        //}
     }
 }

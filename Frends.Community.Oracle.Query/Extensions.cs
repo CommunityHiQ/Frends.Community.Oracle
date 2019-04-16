@@ -6,7 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -24,13 +23,7 @@ namespace Frends.Community.Oracle.Query
     /// </summary>
     public static class Extensions
     {
-        /// <summary>
-        /// Convert enum
-        /// </summary>
-        /// <param name="source"></param>
-        /// <typeparam name="TEnum"></typeparam>
-        /// <returns></returns>
-        public static TEnum ConvertEnum<TEnum>(this Enum source)
+        internal static TEnum ConvertEnum<TEnum>(this Enum source)
         {
             return (TEnum)Enum.Parse(typeof(TEnum), source.ToString(), true);
         }
@@ -42,7 +35,7 @@ namespace Frends.Community.Oracle.Query
         /// <param name="output"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> ToXmlAsync(this OracleCommand command, OutputProperties output, CancellationToken cancellationToken)
+        internal static async Task<string> ToXmlAsync(this OracleCommand command, OutputProperties output, CancellationToken cancellationToken)
         {
             command.CommandType = CommandType.Text;
             
@@ -96,7 +89,7 @@ namespace Frends.Community.Oracle.Query
         /// <param name="output"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> ToJsonAsync(this OracleCommand command, OutputProperties output, CancellationToken cancellationToken)
+        internal static async Task<string> ToJsonAsync(this OracleCommand command, OutputProperties output, CancellationToken cancellationToken)
         {
             command.CommandType = CommandType.Text;
             
@@ -175,7 +168,7 @@ namespace Frends.Community.Oracle.Query
         /// <param name="output"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> ToCsvAsync(this OracleCommand command, OutputProperties output, CancellationToken cancellationToken)
+        internal static async Task<string> ToCsvAsync(this OracleCommand command, OutputProperties output, CancellationToken cancellationToken)
         {
             command.CommandType = CommandType.Text;
 
@@ -225,14 +218,7 @@ namespace Frends.Community.Oracle.Query
 
         #region QueryToFileTask
 
-        /// <summary>
-        /// Write query results to csv file
-        /// </summary>
-        /// <param name="command"></param>
-        /// <param name="output"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public static async Task<int> ToCsvFileAsync(this OracleCommand command, SaveQueryToCsvOptions output, CancellationToken cancellationToken)
+        internal static async Task<int> ToCsvFileAsync(this OracleCommand command, SaveQueryToCsvOptions output, CancellationToken cancellationToken)
         {
             int result;
             command.CommandType = CommandType.Text;
@@ -249,14 +235,8 @@ namespace Frends.Community.Oracle.Query
             }
             return result;
         }
-        
-        /// <summary>
-        /// Return CsvWriter
-        /// </summary>
-        /// <param name="delimiter"></param>
-        /// <param name="writer"></param>
-        /// <returns></returns>
-        public static CsvWriter CreateCsvWriter(string delimiter, TextWriter writer)
+
+        internal static CsvWriter CreateCsvWriter(string delimiter, TextWriter writer)
         {
             var csvOptions = new Configuration
             {
@@ -265,13 +245,7 @@ namespace Frends.Community.Oracle.Query
             return new CsvWriter(writer, csvOptions);
         }
 
-        /// <summary>
-        /// Format csv header
-        /// </summary>
-        /// <param name="header"></param>
-        /// <param name="forceSpecialFormatting"></param>
-        /// <returns></returns>
-        public static string FormatDbHeader(string header, bool forceSpecialFormatting)
+        internal static string FormatDbHeader(string header, bool forceSpecialFormatting)
         {
             if (!forceSpecialFormatting) return header;
 
@@ -282,15 +256,7 @@ namespace Frends.Community.Oracle.Query
             return header.ToLower();
         }
 
-        /// <summary>
-        /// Formats a value according to options
-        /// </summary>
-        /// <param name="value">Value from the database</param>
-        /// <param name="dbTypeName">Type of database column. E.g. for differentiating between DATE and DATETIME types</param>
-        /// <param name="dbType"></param>
-        /// <param name="options">Formatting options</param>
-        /// <returns></returns>
-        public static string FormatDbValue(object value, string dbTypeName, Type dbType, SaveQueryToCsvOptions options)
+        internal static string FormatDbValue(object value, string dbTypeName, Type dbType, SaveQueryToCsvOptions options)
         {
             if (value == null || value == DBNull.Value)
             {
@@ -348,15 +314,7 @@ namespace Frends.Community.Oracle.Query
             return value.ToString();
         }
 
-        /// <summary>
-        /// Write csv data to file
-        /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="csvWriter"></param>
-        /// <param name="options"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public static int DataReaderToCsv(OracleDataReader reader, CsvWriter csvWriter, SaveQueryToCsvOptions options, CancellationToken cancellationToken)
+        internal static int DataReaderToCsv(OracleDataReader reader, CsvWriter csvWriter, SaveQueryToCsvOptions options, CancellationToken cancellationToken)
         {
             // Write header and remember column indexes to include
             var columnIndexesToInclude = new List<int>();
