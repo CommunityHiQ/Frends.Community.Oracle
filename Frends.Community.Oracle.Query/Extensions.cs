@@ -356,7 +356,7 @@ namespace Frends.Community.Oracle.Query
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static int DataReaderToCsv(DbDataReader reader, CsvWriter csvWriter, SaveQueryToCsvOptions options, CancellationToken cancellationToken)
+        public static int DataReaderToCsv(OracleDataReader reader, CsvWriter csvWriter, SaveQueryToCsvOptions options, CancellationToken cancellationToken)
         {
             // Write header and remember column indexes to include
             var columnIndexesToInclude = new List<int>();
@@ -386,10 +386,21 @@ namespace Frends.Community.Oracle.Query
             {
                 foreach (var columnIndex in columnIndexesToInclude)
                 {
-                    var value = reader.GetValue(columnIndex);
-                    var dbTypeName = reader.GetDataTypeName(columnIndex);
+                    string formattedValue;
                     var dbType = reader.GetFieldType(columnIndex);
-                    var formattedValue = FormatDbValue(value, dbTypeName, dbType, options);
+                    var dbTypeName = reader.GetDataTypeName(columnIndex);
+                    switch (dbTypeName)
+                    {
+                        case "Decimal":
+                            var v = reader.GetOracleDecimal(columnIndex);
+                            var fieldValue = (Decimal)OracleDecimal.SetPrecision(v, 28);
+                            formattedValue = FormatDbValue(fieldValue, dbTypeName, dbType, options);
+                            break;
+                        default:
+                            var value = reader.GetValue(columnIndex);
+                            formattedValue = FormatDbValue(value, dbTypeName, dbType, options);
+                            break;
+                    }
                     csvWriter.WriteField(formattedValue, false);
                 }
                 csvWriter.NextRecord();

@@ -1,195 +1,73 @@
 ﻿using NUnit.Framework;
 using System;
-using System.Data;
-using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Oracle.ManagedDataAccess.Client;
 
 namespace Frends.Community.Oracle.Query.Tests
 {
     [TestFixture]
+    [Ignore("Cannot be run unless you have a properly configured Oracle DB running on your local computer")]
     public class OracleQueryToFileTests
     {
-        [Test]
-        public void DataReaderToCsvTest_AllColumns()
+
+        ConnectionProperties _conn = new ConnectionProperties
         {
-            var dt = new DataTable();
-            dt.Columns.AddRange(new[]
+            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=xe)));User Id=SYSTEM;Password=<<your password>>;",
+            TimeoutSeconds = 300
+        };
+
+        [OneTimeSetUp]
+        public async Task OneTimeSetUp()
+        {
+            using (var connection = new OracleConnection(_conn.ConnectionString))
             {
-                new DataColumn("col_string", typeof(string)),
-                new DataColumn("col_datetime", typeof(DateTime)),
-                new DataColumn("col_float", typeof(float))
-            });
+                await connection.OpenAsync();
 
-            dt.Rows.Add("Hello\"semicolon1", DateTime.Parse("2018-12-31T11:22:33"), 3000.212);
-            dt.Rows.Add("Hello\"semicolon2", DateTime.Parse("2018-12-31T11:22:34"), 3000.212);
+                using (var command = new OracleCommand("create table HodorTest(Name varchar2(15), Value number(10,0), DecimalValue decimal(38,35), Inserted DATE)", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+                using (var command = new OracleCommand("insert all into HodorTest values('hodor', 123, 1.12345678912345678912345678912345678, TO_DATE('2019-12-09','YYYY-MM-DD')) into HodorTest values('jon', 321, 1.123456, TO_DATE('2019-12-09','YYYY-MM-DD')) select 1 from dual", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
 
-            var options = new SaveQueryToCsvOptions
+        [OneTimeTearDown]
+        public async Task OneTimeTearDown()
+        {
+            using (var connection = new OracleConnection(_conn.ConnectionString))
             {
-                DateFormat = "MM-dd-yyyy",
-                DateTimeFormat = "MM-dd-yyyy HH:mm:ss",
-                ColumnsToInclude = new string[0],
-                FieldDelimiter = CsvFieldDelimiter.Semicolon,
-                AddQuotesToDates = false
-            };
+                await connection.OpenAsync();
 
-            using (var writer = new StringWriter())
-            using (var csvFile = Extensions.CreateCsvWriter(options.GetFieldDelimiterAsString(), writer))
-            using (var reader = new DataTableReader(dt))
-            {
-                var entries = Extensions.DataReaderToCsv(reader, csvFile, options, new System.Threading.CancellationToken());
-                csvFile.Flush();
-                var result = writer.ToString();
-                var resultLines = result.Split("\r\n");
-
-                // 4 lines = 1 header line + 2 data lines + 1 newline at end of file
-                Assert.AreEqual(4, resultLines.Length);
-                Assert.AreEqual(2, entries);
-                Assert.AreEqual("col_string;col_datetime;col_float", resultLines[0]);
-                Assert.AreEqual("\"Hello\\\"semicolon1\";12-31-2018 11:22:33;3000.212", resultLines[1]);
-                Assert.AreEqual("\"Hello\\\"semicolon2\";12-31-2018 11:22:34;3000.212", resultLines[2]);
+                using (var command = new OracleCommand("drop table HodorTest", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
             }
         }
 
         [Test]
-        public void DataReaderToCsvTest_ExcludeColumnHeaders()
+        public async Task ShouldWriteCsvFile()
         {
-            var dt = new DataTable();
-            dt.Columns.Add(new DataColumn("col_string", typeof(string)));
-            dt.Rows.Add("test");
-
-            var options = new SaveQueryToCsvOptions { IncludeHeadersInOutput = false };
-            using (var writer = new StringWriter())
-            using (var csvFile = Extensions.CreateCsvWriter(options.GetFieldDelimiterAsString(), writer))
-            using (var reader = new DataTableReader(dt))
+            var q = new QueryProperties { Query = "select * from HodorTest" };
+            var o = new SaveQueryToCsvOptions
             {
-                Extensions.DataReaderToCsv(reader, csvFile, options, new System.Threading.CancellationToken());
-                csvFile.Flush();
-                var result = writer.ToString();
-                var resultLines = result.Split("\r\n");
-
-                // 2 lines = 0 header lines + 1 data lines + 1 newline at end of file
-                Assert.AreEqual(2, resultLines.Length);
-                Assert.AreEqual("\"test\"", resultLines[0]);
-            }
-        }
-
-        [Test]
-        public void DataReaderToCsvTest_SanitizeColumnHeaders()
-        {
-            var dt = new DataTable();
-            dt.Columns.Add(new DataColumn("COL_STRING", typeof(string)));
-            dt.Rows.Add("test");
-
-            var options = new SaveQueryToCsvOptions { SanitizeColumnHeaders = true };
-            using (var writer = new StringWriter())
-            using (var csvFile = Extensions.CreateCsvWriter(options.GetFieldDelimiterAsString(), writer))
-            using (var reader = new DataTableReader(dt))
-            {
-                Extensions.DataReaderToCsv(reader, csvFile, options, new System.Threading.CancellationToken());
-                csvFile.Flush();
-                var result = writer.ToString();
-                var resultLines = result.Split("\r\n");
-
-                // 3 lines = 1 header lines + 1 data lines + 1 newline at end of file
-                Assert.AreEqual(3, resultLines.Length);
-                Assert.AreEqual("col_string", resultLines[0]);
-            }
-        }
-
-        [Test]
-        public void DataReaderToCsvTest_SelectedColumns()
-        {
-            var dt = new DataTable();
-            dt.Columns.AddRange(new[]
-            {
-                new DataColumn("COL_StrING", typeof(string)),
-                new DataColumn("col_datetime", typeof(DateTime)),
-                new DataColumn("123Col_float", typeof(float))
-            });
-
-            dt.Rows.Add("Hello\"semicolon1", DateTime.Parse("2018-12-31T11:22:33"), 3000.212);
-            dt.Rows.Add("Hello\"semicolon2", DateTime.Parse("2018-12-31T11:22:34"), 3000.212);
-
-            var options = new SaveQueryToCsvOptions
-            {
-                DateFormat = "MM-dd-yyyy HH:mm:ss",
-                ColumnsToInclude = new[] { "COL_StrING", "123Col_float" },
+                OutputFilePath = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid() + ".csv"),
                 FieldDelimiter = CsvFieldDelimiter.Pipe,
-                SanitizeColumnHeaders = true
+                LineBreak = CsvLineBreak.CRLF
             };
+            var options = new Options { ThrowErrorOnFailure = true };
 
-            using (var writer = new StringWriter())
-            using (var csvFile = Extensions.CreateCsvWriter(options.GetFieldDelimiterAsString(), writer))
-            using (var reader = new DataTableReader(dt))
-            {
-                Extensions.DataReaderToCsv(reader, csvFile, options, new System.Threading.CancellationToken());
-                csvFile.Flush();
-                var result = writer.ToString();
-                var resultLines = result.Split("\r\n");
+            var result = await QueryTask.QueryToFile(q, o, _conn, options, new CancellationToken());
 
-                // 4 lines = 1 header line + 2 data lines + 1 newline at end of file
-                Assert.AreEqual(4, resultLines.Length);
-                Assert.AreEqual("col_string|col_float", resultLines[0]);
-                Assert.AreEqual("\"Hello\\\"semicolon1\"|3000.212", resultLines[1]);
-                Assert.AreEqual("\"Hello\\\"semicolon2\"|3000.212", resultLines[2]);
-            }
+            Assert.AreEqual(result.Success, true, "Should have returned true for success");
+            File.Delete(result.Result);
         }
-
-        /// <summary>
-        /// This test is basically to make sure that the dump to CSV is not horribly slow.
-        /// My results are ok (not great though) - about 1m rows in under 2 seconds. But 
-        /// this depends on the agent CPU of course.
-        /// </summary>
-        [Ignore("This test is for occasional performance testing only and depends on host CPU")]
-        [Test]
-        public void DataReaderToCsvTest_1mRows()
-        {
-            var rowAmount = 1000000;
-            var processingMaxTimeSeconds = 2d;
-            var dt = new DataTable();
-            dt.Columns.AddRange(new[]
-            {
-                new DataColumn("col_string", typeof(string)),
-                new DataColumn("col_datetime", typeof(DateTime)),
-                new DataColumn("col_float", typeof(float)),
-                new DataColumn("col_double", typeof(double)),
-                new DataColumn("col_decimal", typeof(decimal)),
-            });
-
-            for (var i = 0; i < rowAmount; i++)
-            {
-                dt.Rows.Add($"Hello, mister {i}", DateTime.Now, i, i, i);
-            }
-
-            var options = new SaveQueryToCsvOptions
-            {
-                DateFormat = "MM-dd-yyyy HH:mm:ss",
-                ColumnsToInclude = new[] { "col_string", "col_float" },
-                FieldDelimiter = CsvFieldDelimiter.Pipe
-            };
-
-            using (var writer = new StringWriter())
-            using (var csvFile = Extensions.CreateCsvWriter(options.GetFieldDelimiterAsString(), writer))
-            using (var reader = new DataTableReader(dt))
-            {
-                var sw = Stopwatch.StartNew();
-                Extensions.DataReaderToCsv(reader, csvFile, options, new System.Threading.CancellationToken());
-                csvFile.Flush();
-                sw.Stop();
-                Console.WriteLine("Elapsed={0}", sw.Elapsed);
-                var result = writer.ToString();
-                var resultLines = result.Split("\r\n");
-
-                // rowAmount + 1 header row + 1 newline at end
-                Assert.AreEqual(rowAmount + 2, resultLines.Length);
-
-                // Check execution time
-                Assert.IsTrue(
-                    sw.Elapsed.TotalSeconds < processingMaxTimeSeconds,
-                    $"DataReaderToCsv completed in {sw.Elapsed.TotalSeconds} seconds. Processing max time: {processingMaxTimeSeconds} seconds");
-            }
-        }
-
+        
         [Test]
         public void FormatDbValue_String()
         {
