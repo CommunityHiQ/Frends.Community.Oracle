@@ -70,13 +70,14 @@ namespace Frends.Community.Oracle.Query
                     {
                         throw ex;
                     }
-                    finally
-                    {
-                        // Close connection
-                        c.Dispose();
-                        c.Close();
-                        OracleConnection.ClearPool(c);
-                    }
+                    // NO FINALLY AT ALL!
+                    //finally 
+                    //{
+                    //    // Close connection
+                    //    c.Dispose();
+                    //    c.Close();
+                    //    OracleConnection.ClearPool(c);
+                    //}
                 }
             }
             catch (Exception ex)

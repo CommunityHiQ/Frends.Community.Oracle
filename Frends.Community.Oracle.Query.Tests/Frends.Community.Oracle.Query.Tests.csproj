@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Frends.Community.Oracle.Query\Frends.Community.Oracle.Query.csproj" />
+    <ProjectReference Include="..\Frends.Community.Oracle.Query\Frends.Community.Oracle.QueryTestVersion.csproj" />
   </ItemGroup>
 
 </Project>

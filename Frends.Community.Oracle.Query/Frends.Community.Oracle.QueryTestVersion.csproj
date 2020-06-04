@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,8 +6,10 @@
     <Description>Task for performing oracle queries</Description>
     <FileVersion>2.0.1.0</FileVersion>
     <AssemblyVersion>2.0.1.0</AssemblyVersion>
-    <Version>2.0.1</Version>
+    <Version>0.0.1</Version>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <AssemblyName>Frends.Community.Oracle.QueryTestVersion</AssemblyName>
+    <RootNamespace>Frends.Community.Oracle.QueryTestVersion</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -16,7 +18,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netstandard2.0\Frends.Community.Oracle.Query.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netstandard2.0\Frends.Community.Oracle.QueryTestVersion.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +29,12 @@
     <PackageReference Include="System.Threading" Version="4.3.0" />
     <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
     <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="FrendsTaskMetadata.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
