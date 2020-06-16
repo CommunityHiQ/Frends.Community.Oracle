@@ -2,6 +2,8 @@
 
 FRENDS 4 Task for querying data from Oracle database
 
+[![Actions Status](https://github.com/CommunityHiQ/Frends.Community.Oracle.Query/workflows/PackAndPushAfterMerge/badge.svg)](https://github.com/CommunityHiQ/Frends.Community.Oracle.Query/actions) ![MyGet](https://img.shields.io/myget/frends-community/v/Frends.Community.Oracle.Query) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+
 - [Installing](#installing)
 - [Task](#tasks)
 	- [Query](#query)
@@ -115,19 +117,17 @@ Clone a copy of the repo
 
 `git clone https://github.com/CommunityHiQ/Frends.Community.Oracle.Query.git`
 
-Restore dependencies
-
-`nuget restore frends.community.oracle.query`
-
 Rebuild the project
 
-Run Tests with nunit3. Tests can be found under
+`dotnet build`
 
-`Frends.Community.Oracle.Query.Tests\bin\Release\Frends.Community.Oracle.Query.Tests.dll`
+Run Tests
 
-Create a nuget package
+`dotnet test`
 
-`nuget pack nuspec/Frends.Community.Oracle.Query.nuspec`
+Create a NuGet package
+
+`dotnet pack --configuration Release`
 
 # Contributing
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
