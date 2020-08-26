@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.18.3" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.80" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Threading" Version="4.3.0" />
