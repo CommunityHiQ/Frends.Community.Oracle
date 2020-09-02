@@ -110,17 +110,21 @@ namespace Frends.Community.Oracle.Query
         [DefaultValue(true)]
         public bool ThrowErrorOnFailure { get; set; }
 
+        /// <summary>
+        /// a
+        /// </summary>
+        [DefaultValue(false)]
         public bool EnableDetaildLogging { get; set; }
 
         /// <summary>
-        /// Oracle connection string
+        /// a
         /// </summary>
         [UIHint(nameof(EnableDetaildLogging), "", true)]
         [DefaultValue(7)]
         public int TraceLevel { get; set; }
 
         /// <summary>
-        /// Oracle connection string
+        /// a
         /// </summary>
         [UIHint(nameof(EnableDetaildLogging), "", true)]
         [DisplayFormat(DataFormatString = "Text")]
