@@ -29,6 +29,9 @@ namespace Frends.Community.Oracle.Query
         {
             try
             {
+                OracleConfiguration.TraceFileLocation = options.TraceFileLocation;
+                OracleConfiguration.TraceLevel = options.TraceLevel;
+
                 using (var c = new OracleConnection(connection.ConnectionString))
                 {
                     try

@@ -109,6 +109,24 @@ namespace Frends.Community.Oracle.Query
         /// </summary>
         [DefaultValue(true)]
         public bool ThrowErrorOnFailure { get; set; }
+
+        public bool EnableDetaildLogging { get; set; }
+
+        /// <summary>
+        /// Oracle connection string
+        /// </summary>
+        [UIHint(nameof(EnableDetaildLogging), "", true)]
+        [DefaultValue(7)]
+        public int TraceLevel { get; set; }
+
+        /// <summary>
+        /// Oracle connection string
+        /// </summary>
+        [UIHint(nameof(EnableDetaildLogging), "", true)]
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue(@"C:\temp")]
+        public string TraceFileLocation { get; set; }
+
     }
 
     /// <summary>
