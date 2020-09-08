@@ -146,3 +146,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | ----- | ----- |
 | 1.0.0 | Initial version of Oracle Query Task |
 | 2.0.0 | Breaking changes: target .netstandard, more user friendly task settings, csv output, all output types are now possibly to stream directly into a file |
+| 2.0.6 | Enabled detailed logging. |
