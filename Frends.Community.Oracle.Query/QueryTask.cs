@@ -5,6 +5,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using System.Dynamic;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using Dapper;
 
 #pragma warning disable 1591
 
@@ -143,6 +148,92 @@ namespace Frends.Community.Oracle.Query
             }
         }
 
+
+        /// <summary>
+        /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
+        /// </summary>
+        /// <param name="batchinput">Input parameters</param>
+        /// <param name="connection">Connection properties</param>
+        /// <param name="options"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Object { bool Success, string Message, string Result }</returns>
+        public static async Task<BatchOperationOutput> BatchOperation(
+            [PropertyTab] InputBatchOperation batchinput,
+            [PropertyTab] ConnectionProperties connection,
+            [PropertyTab] BatchOptions options,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                using (var c = new OracleConnection(connection.ConnectionString))
+                {
+                    try
+                    {
+                        await c.OpenAsync(cancellationToken);
+
+                        using (var command = new OracleCommand(batchinput.Query, c))
+                        {
+                            command.CommandTimeout = connection.TimeoutSeconds;
+                            command.BindByName = true; // is this xmlCommand specific?
+
+                            // declare Result object
+                            int queryResult;
+
+
+                            OracleTransaction txn = c.BeginTransaction();
+                            try
+                            {
+                                var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(batchinput.InputJson, new ExpandoObjectConverter());
+                                queryResult = await c.ExecuteAsync(
+                                    batchinput.Query,
+                                    param: obj,
+                                    commandTimeout: batchinput.CommandTimeoutSeconds,
+                                    commandType: CommandType.Text,
+                                    transaction: txn)
+                                    .ConfigureAwait(false);
+
+                                txn.Commit();
+                                txn.Dispose();
+
+                                return new BatchOperationOutput { Success = true, Result = queryResult };
+                            }
+                            catch(Exception ee)
+                            {
+                                txn.Dispose();
+                                throw ee;
+                            }
+
+
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        
+                        throw ex;
+                    }
+
+                    finally
+                    {
+                        // Close connection
+                        c.Dispose();
+                        c.Close();
+                        OracleConnection.ClearPool(c);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (options.ThrowErrorOnFailure)
+                    throw ex;
+                return new BatchOperationOutput
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+
         public static OracleParameter CreateOracleParameter(QueryParameter parameter)
         {
             return new OracleParameter()
@@ -152,5 +243,6 @@ namespace Frends.Community.Oracle.Query
                 OracleDbType = parameter.DataType.ConvertEnum<OracleDbType>()
             };
         }
+
     }
 }

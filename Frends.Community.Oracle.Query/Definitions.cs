@@ -119,6 +119,21 @@ namespace Frends.Community.Oracle.Query
         public Oracle_IsolationLevel IsolationLevel { get; set; }
     }
 
+    public class BatchOptions
+    {
+        /// <summary>
+        /// Choose if error should be thrown if Task failes.
+        /// Otherwise returns Object {Success = false }
+        /// </summary>
+        [DefaultValue(true)]
+        public bool ThrowErrorOnFailure { get; set; }
+
+        /// <summary>
+        /// Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Default is Serializable.
+        /// </summary>
+        public Oracle_IsolationLevel IsolationLevel { get; set; }
+    }
+
     /// <summary>
     /// Result to be returned from task
     /// </summary>
@@ -127,6 +142,16 @@ namespace Frends.Community.Oracle.Query
         public bool Success { get; set; }
         public string Message { get; set; }
         public string Result { get; set; }
+    }
+
+    /// <summary>
+    /// Result to be returned from task
+    /// </summary>
+    public class BatchOperationOutput
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public int Result { get; set; }
     }
 
     /// <summary>
@@ -203,5 +228,26 @@ namespace Frends.Community.Oracle.Query
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("utf-8")]
         public string Encoding { get; set; }
+    }
+
+    public class InputBatchOperation
+    {
+        /// <summary>
+        /// Query string for batch operation.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Query")]
+        [DefaultValue("insert into MyTable(ID,NAME) VALUES (:Id, :FirstName)")]
+        public string Query { get; set; }
+
+        /// <summary>
+        /// Input json for batch operation. Needs to be a Json array.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Json")]
+        [DefaultValue("[{\"Id\":15,\"FirstName\":\"Foo\"},{\"Id\":20,\"FirstName\":\"Bar\"}]")]
+        public string InputJson { get; set; }
+
+        [DefaultValue(60)]
+        public int CommandTimeoutSeconds { get; set; }
+
     }
 }

@@ -11,14 +11,14 @@ namespace Frends.Community.Oracle.Query.Tests
     /// THESE TESTS DO NOT WORK UNLESS YOU INSTALL ORACLE LOCALLY ON YOUR OWN COMPUTER!
     /// </summary>
     [TestFixture]
-   [Ignore("Cannot be run unless you have a properly configured Oracle DB running on your local computer")]
+   //[Ignore("Cannot be run unless you have a properly configured Oracle DB running on your local computer")]
     public class OracleQueryTests
     {
         // Problems with local oracle, tests not implemented yet
 
         ConnectionProperties _conn = new ConnectionProperties
         {
-            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=<service_name>)));User Id=SYSTEM;Password=<password>;",
+            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=<service name>)));User Id=<userid>;Password=<pass>;",
             TimeoutSeconds = 900
         };
 
@@ -72,7 +72,22 @@ namespace Frends.Community.Oracle.Query.Tests
                     await command.ExecuteNonQueryAsync();
                 }
 
-                
+                using (var command = new OracleCommand("create table batch_table_test (NR number(20), NAM varchar(20))", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                using (var command = new OracleCommand("create table batch_table_rollbacktest (NR NUMBER PRIMARY KEY, NAM varchar(20))", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                using (var command = new OracleCommand("insert into batch_table_rollbacktest(NR, NAM) values (123, 'ShouldNotChange')", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+
             }
         }
 
@@ -102,6 +117,15 @@ namespace Frends.Community.Oracle.Query.Tests
                 }
 
                 using (var command = new OracleCommand("drop table duplicate_inserttest_table", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                using (var command = new OracleCommand("drop table batch_table_test", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+                using (var command = new OracleCommand("drop table batch_table_rollbacktest", connection))
                 {
                     await command.ExecuteNonQueryAsync();
                 }
@@ -372,7 +396,7 @@ END;" };
             {
                  result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
             }
-            catch (Exception ee)
+            catch (Exception)
             {
 
                 var q2 = new QueryProperties { Query = @"select * from duplicate_inserttest_table" };
@@ -382,6 +406,58 @@ END;" };
 
             Assert.AreEqual(result.Success, false);
             Assert.AreEqual(result_debug.Result, "");
+        }
+
+
+        [Test]
+
+        [Category("BatchOperationTests")]
+        public async Task BatchOperationInsertTest()
+        {
+
+            //t(NR varchar(20), NAM varchar(20))",
+            var inputbatch = new InputBatchOperation { Query = @"BEGIN
+insert into batch_table_test (NR,NAM)values(:NR,:NAM);
+END;",  InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"nannaa2\"},{\"NR\":333, \"NAM\":\"nannaa3\"},{\"NR\":444, \"NAM\":\"nannaa4\"}]" };
+
+            var options = new BatchOptions();
+            options.ThrowErrorOnFailure = true;
+            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+
+            BatchOperationOutput batch_output = new BatchOperationOutput();
+
+            try
+            {
+                batch_output = await QueryTask.BatchOperation(inputbatch, _conn, options, new CancellationToken());
+            }
+            catch (Exception ee)
+            {
+
+                throw ee;
+
+            }
+
+            //Query rows from db, should be 2.
+            var o = new OutputProperties
+            {
+                ReturnType = QueryReturnType.Csv,
+                CsvOutput = new CsvOutputProperties
+                {
+                    CsvSeparator = ";",
+                    IncludeHeaders = true
+                },
+                OutputToFile = false,
+            };
+
+            var q2 = new QueryProperties { Query = @"select count(*) as ROWCOUNT from batch_table_test" };
+            var options_2 = new Options();
+            options.ThrowErrorOnFailure = true;
+            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+            var result_debug = await QueryTask.Query(q2, o, _conn, options_2, new CancellationToken());
+
+
+
+            Assert.AreEqual(result_debug.Result, "ROWCOUNT\r\n2\r\n");
         }
 
     }
