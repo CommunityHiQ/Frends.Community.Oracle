@@ -1,5 +1,6 @@
 ﻿using Oracle.ManagedDataAccess.Client;
 using System;
+using System.Data;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
@@ -11,6 +12,7 @@ namespace Frends.Community.Oracle.Query
 {
     public class QueryTask
     {
+
         /// <summary>
         /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
         /// </summary>
@@ -40,6 +42,8 @@ namespace Frends.Community.Oracle.Query
                             command.CommandTimeout = connection.TimeoutSeconds;
                             command.BindByName = true; // is this xmlCommand specific?
 
+
+
                             // check for command parameters and set them
                             if (query.Parameters != null)
                                 command.Parameters.AddRange(query.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
@@ -47,29 +51,77 @@ namespace Frends.Community.Oracle.Query
                             // declare Result object
                             string queryResult;
 
-                            // set commandType according to ReturnType
-                            switch (output.ReturnType)
+
+                            if (options.IsolationLevel == Oracle_IsolationLevel.None)
                             {
-                                case QueryReturnType.Xml:
-                                    queryResult = await command.ToXmlAsync(output, cancellationToken);
-                                    break;
-                                case QueryReturnType.Json:
-                                    queryResult = await command.ToJsonAsync(output, cancellationToken);
-                                    break;
-                                case QueryReturnType.Csv:
-                                    queryResult = await command.ToCsvAsync(output, cancellationToken);
-                                    break;
-                                default:
-                                    throw new ArgumentException("Task 'Return Type' was invalid! Check task properties.");
+
+                                // set commandType according to ReturnType
+                                switch (output.ReturnType)
+                                {
+                                    case QueryReturnType.Xml:
+                                        queryResult = await command.ToXmlAsync(output, cancellationToken);
+                                        break;
+                                    case QueryReturnType.Json:
+                                        queryResult = await command.ToJsonAsync(output, cancellationToken);
+                                        break;
+                                    case QueryReturnType.Csv:
+                                        queryResult = await command.ToCsvAsync(output, cancellationToken);
+                                        break;
+                                    default:
+                                        throw new ArgumentException("Task 'Return Type' was invalid! Check task properties.");
+                                }
+                                return new Output { Success = true, Result = queryResult };
+                            }
+                            else
+                            {
+                                OracleTransaction txn = c.BeginTransaction(
+
+                                    options.IsolationLevel.GetTransactionIsolationLevel()); ;
+
+                                try
+                                {
+
+                                    // set commandType according to ReturnType
+                                    switch (output.ReturnType)
+                                    {
+                                        case QueryReturnType.Xml:
+                                            queryResult = await command.ToXmlAsync(output, cancellationToken);
+                                            txn.Commit();
+                                            break;
+                                        case QueryReturnType.Json:
+                                            queryResult = await command.ToJsonAsync(output, cancellationToken);
+                                            txn.Commit();
+                                            break;
+                                        case QueryReturnType.Csv:
+                                            queryResult = await command.ToCsvAsync(output, cancellationToken);
+                                            txn.Commit();
+                                            break;
+                                        default:
+                                            throw new ArgumentException("Task 'Return Type' was invalid! Check task properties.");
+                                    }
+
+
+                                }
+                                catch (Exception e) {
+
+                                    txn.Rollback();
+                                    txn.Dispose();
+                                    throw e;
+                                }
+
+                                txn.Dispose();
+                                return new Output { Success = true, Result = queryResult };
+
+
                             }
 
-                            return new Output { Success = true, Result = queryResult };
                         }
                     }
                     catch (Exception ex)
                     {
                         throw ex;
                     }
+
                     finally
                     {
                         // Close connection

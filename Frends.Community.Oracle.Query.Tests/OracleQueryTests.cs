@@ -11,15 +11,15 @@ namespace Frends.Community.Oracle.Query.Tests
     /// THESE TESTS DO NOT WORK UNLESS YOU INSTALL ORACLE LOCALLY ON YOUR OWN COMPUTER!
     /// </summary>
     [TestFixture]
-    [Ignore("Cannot be run unless you have a properly configured Oracle DB running on your local computer")]
+   // [Ignore("Cannot be run unless you have a properly configured Oracle DB running on your local computer")]
     public class OracleQueryTests
     {
         // Problems with local oracle, tests not implemented yet
 
         ConnectionProperties _conn = new ConnectionProperties
         {
-            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=xe)));User Id=SYSTEM;Password=<<your password>>;",
-            TimeoutSeconds = 300
+            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XE)));User Id=SYSTEM;Password=test123;",
+            TimeoutSeconds = 900
         };
 
         [OneTimeSetUp]
@@ -45,6 +45,34 @@ namespace Frends.Community.Oracle.Query.Tests
                 {
                     await command.ExecuteNonQueryAsync();
                 }
+
+                using (var command = new OracleCommand("create table Inserttest (Name varchar(20), Sendstatus varchar(5))", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                using (var command = new OracleCommand("insert into Inserttest(Name, Sendstatus) values ('Han_1', '0')", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+
+                using (var command = new OracleCommand("create table Inserttest_2 (Name varchar(20), Sendstatus varchar(5))", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                using (var command = new OracleCommand("insert into Inserttest_2(Name, Sendstatus) values ('Han_2', '0')", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                using (var command = new OracleCommand("create table duplicate_inserttest_table (PO_NR NUMBER PRIMARY KEY)", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                
             }
         }
 
@@ -60,6 +88,20 @@ namespace Frends.Community.Oracle.Query.Tests
                     await command.ExecuteNonQueryAsync();
                 }
                 using (var command = new OracleCommand("drop table DecimalTest", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+                using (var command = new OracleCommand("drop table InsertTest", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                using (var command = new OracleCommand("drop table Inserttest_2", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                using (var command = new OracleCommand("drop table duplicate_inserttest_table", connection))
                 {
                     await command.ExecuteNonQueryAsync();
                 }
@@ -266,5 +308,81 @@ namespace Frends.Community.Oracle.Query.Tests
             Assert.IsTrue(File.Exists(result.Result), "should have created csv output file");
             File.Delete(result.Result);
         }
+
+        [Test]
+        [Category("Isolation test")]
+        public async Task IsolationTest1()
+        {
+            var q = new QueryProperties { Query = "select * from InsertTest" };
+
+
+
+            var o = new OutputProperties
+            {
+                ReturnType = QueryReturnType.Csv,
+                CsvOutput = new CsvOutputProperties
+                {
+                    CsvSeparator = ";",
+                    IncludeHeaders = true
+                },
+                OutputToFile = false,
+            };
+
+            var options = new Options();
+            options.ThrowErrorOnFailure = true;
+            options.IsolationLevel = Oracle_IsolationLevel.ReadCommitted;
+
+
+            Output result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
+            Assert.AreEqual(result.Result, "NAME;SENDSTATUS\r\nHan_1;0\r\n");
+
+        }
+
+
+        [Test]
+
+        [Category("RollBackTest")]
+        public async Task RollBackTest_1()
+        {
+            var q = new QueryProperties { Query = @"BEGIN
+insert into duplicate_inserttest_table (po_nr)values ('111111');
+insert into duplicate_inserttest_table (po_nr)values ('111111');
+END;" };
+
+
+
+            var o = new OutputProperties
+            {
+                ReturnType = QueryReturnType.Csv,
+                CsvOutput = new CsvOutputProperties
+                {
+                    CsvSeparator = ";",
+                    IncludeHeaders = true
+                },
+                OutputToFile = false,
+            };
+
+            var options = new Options();
+            options.ThrowErrorOnFailure = true;
+            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+            Output result = new Output();
+            Output result_debug = new Output();
+
+            try
+            {
+                 result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
+            }
+            catch (Exception ee)
+            {
+
+                var q2 = new QueryProperties { Query = @"select * from duplicate_inserttest_table" };
+                result_debug = await QueryTask.Query(q2, o, _conn, options, new CancellationToken());
+                
+            }
+
+            Assert.AreEqual(result.Success, false);
+            Assert.AreEqual(result_debug.Result, "");
+        }
+
     }
 }

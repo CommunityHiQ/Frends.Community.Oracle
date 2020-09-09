@@ -15,11 +15,21 @@ namespace Frends.Community.Oracle.Query
 {
     static class Extensions
     {
+
+        internal static System.Data.IsolationLevel GetTransactionIsolationLevel(this Oracle_IsolationLevel Oracle_IsolationLevel)
+        {
+            return GetEnum<IsolationLevel>(Oracle_IsolationLevel);
+        }
+
+        private static T GetEnum<T>(Enum enumValue)
+        {
+            return (T)Enum.Parse(typeof(T), enumValue.ToString());
+        }
+
         public static TEnum ConvertEnum<TEnum>(this Enum source)
         {
             return (TEnum)Enum.Parse(typeof(TEnum), source.ToString(), true);
         }
-
         /// <summary>
         /// Write query results to csv string or file
         /// </summary>

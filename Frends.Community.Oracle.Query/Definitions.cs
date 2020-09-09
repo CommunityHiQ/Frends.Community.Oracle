@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Data;
 using System.ComponentModel.DataAnnotations;
 
 #pragma warning disable 1591
@@ -101,6 +102,8 @@ namespace Frends.Community.Oracle.Query
         public int TimeoutSeconds { get; set; }
     }
 
+    public enum Oracle_IsolationLevel { None, ReadCommitted, Serializable }
+
     public class Options
     {
         /// <summary>
@@ -109,6 +112,11 @@ namespace Frends.Community.Oracle.Query
         /// </summary>
         [DefaultValue(true)]
         public bool ThrowErrorOnFailure { get; set; }
+
+        /// <summary>
+        /// Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Default is Serializable.
+        /// </summary>
+        public Oracle_IsolationLevel IsolationLevel { get; set; }
     }
 
     /// <summary>
