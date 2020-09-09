@@ -76,6 +76,7 @@ Executes query against Oracle database.
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
+| Transaction Isolation Level| Oracle_IsolationLevel | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  None, Serializable, ReadCommitted | None |
 
 ### Result
 
