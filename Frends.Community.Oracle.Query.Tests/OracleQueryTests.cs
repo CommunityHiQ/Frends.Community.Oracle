@@ -11,14 +11,14 @@ namespace Frends.Community.Oracle.Query.Tests
     /// THESE TESTS DO NOT WORK UNLESS YOU INSTALL ORACLE LOCALLY ON YOUR OWN COMPUTER!
     /// </summary>
     [TestFixture]
-   // [Ignore("Cannot be run unless you have a properly configured Oracle DB running on your local computer")]
+   [Ignore("Cannot be run unless you have a properly configured Oracle DB running on your local computer")]
     public class OracleQueryTests
     {
         // Problems with local oracle, tests not implemented yet
 
         ConnectionProperties _conn = new ConnectionProperties
         {
-            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XE)));User Id=SYSTEM;Password=test123;",
+            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=<service_name>)));User Id=SYSTEM;Password=<password>;",
             TimeoutSeconds = 900
         };
 
