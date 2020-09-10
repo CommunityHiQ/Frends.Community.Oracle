@@ -18,7 +18,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
         ConnectionProperties _conn = new ConnectionProperties
         {
-            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XE)));User Id=SYSTEM;Password=0460b4ac69;",
+            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=<service name>)));User Id=<userid>;Password=<pass>;",
             TimeoutSeconds = 900
         };
 
@@ -77,15 +77,11 @@ namespace Frends.Community.Oracle.Query.Tests
                     await command.ExecuteNonQueryAsync();
                 }
 
-                using (var command = new OracleCommand("create table batch_table_rollbacktest (NR NUMBER PRIMARY KEY, NAM varchar(20))", connection))
+                using (var command = new OracleCommand("create table duplicate_inserttest_table2 (PO_NR NUMBER PRIMARY KEY)", connection))
                 {
                     await command.ExecuteNonQueryAsync();
                 }
 
-                using (var command = new OracleCommand("insert into batch_table_rollbacktest(NR, NAM) values (123, 'ShouldNotChange')", connection))
-                {
-                    await command.ExecuteNonQueryAsync();
-                }
 
 
             }
@@ -121,14 +117,16 @@ namespace Frends.Community.Oracle.Query.Tests
                     await command.ExecuteNonQueryAsync();
                 }
 
+                using (var command = new OracleCommand("drop table duplicate_inserttest_table2", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
                 using (var command = new OracleCommand("drop table batch_table_test", connection))
                 {
                     await command.ExecuteNonQueryAsync();
                 }
-                using (var command = new OracleCommand("drop table batch_table_rollbacktest", connection))
-                {
-                    await command.ExecuteNonQueryAsync();
-                }
+
             }
         }
 
@@ -369,8 +367,14 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task RollBackTest_1()
         {
             var q = new QueryProperties { Query = @"
-insert into duplicate_inserttest_table (po_nr)values ('111113');
-insert into duplicate_inserttest_table (po_nr)values ('111113');
+BEGIN
+insert into duplicate_inserttest_table (po_nr)values ('1');
+
+
+insert into duplicate_inserttest_table2 (po_nr)values ('2');
+
+insert into duplicate_inserttest_table2 (po_nr)values ('2');
+END;
 " };
 
             var o = new OutputProperties
@@ -386,7 +390,7 @@ insert into duplicate_inserttest_table (po_nr)values ('111113');
 
             var options = new Options();
             options.ThrowErrorOnFailure = true;
-            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+            options.IsolationLevel = Oracle_IsolationLevel.None;
             Output result = new Output();
             Output result_debug = new Output();
 
@@ -394,9 +398,9 @@ insert into duplicate_inserttest_table (po_nr)values ('111113');
             {
                  result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
             }
-            catch (Exception EE)
-            {
-                Console.WriteLine(EE);
+            catch (Exception)
+             {
+
                 var q2 = new QueryProperties { Query = @"select * from duplicate_inserttest_table" };
                 result_debug = await QueryTask.Query(q2, o, _conn, options, new CancellationToken());
                 
