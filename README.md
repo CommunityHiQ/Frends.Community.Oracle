@@ -5,6 +5,7 @@ FRENDS 4 Task for querying data from Oracle database
 - [Installing](#installing)
 - [Task](#tasks)
 	- [Query](#query)
+	- [BatchOperation](#batchoperation)
 - [Building](#building)
 - [Contributing](#contributing)
 - [Change Log](#change-log)
@@ -109,8 +110,6 @@ To access query result, use
 ```
 #result.Result
 ```
-
-# Task
 
 ## BatchOperation
 
