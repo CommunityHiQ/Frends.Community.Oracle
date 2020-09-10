@@ -18,7 +18,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
         ConnectionProperties _conn = new ConnectionProperties
         {
-            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XE)));User Id=SYSTEM;Password=Q50VZY5ol8BsIRBWdQOQ;",
+            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=<service name>)));User Id=<userid>;Password=<pass>;",
             TimeoutSeconds = 900
         };
 
