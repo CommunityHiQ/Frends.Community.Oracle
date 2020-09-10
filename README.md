@@ -110,6 +110,36 @@ To access query result, use
 #result.Result
 ```
 
+# Task
+
+## BatchOperation
+
+Create a query for a batch operation like insert. The query is executed with Dapper ExecuteAsync https://github.com/CommunityHiQ/Frends.Community.Oracle.Query/tree/master
+
+### Input
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Query | string | The query to execute | `insert into MyTable(ID,NAME) VALUES (@Id, @FirstName)`|
+| InputJson | string |A Json Array of objects that has their properties mapped to the parameters in the Query|[{"Id":10, "FirstName": "Foo"},{"Id":15, "FirstName": "Bar"}]  |
+
+### Connection
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
+| Timeout seconds | int | Query timeout in seconds | `60` |
+
+### Options
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
+| Transaction Isolation Level| Oracle_IsolationLevel | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  Serializable, ReadCommitted | Serializable |
+
+
+#### Result
+Integer - Number of affected rows
+
 # Building
 
 Clone a copy of the repo

@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Frends.Community.Oracle.Query
+namespace Frends.Community.Oracle
 {
     static class Extensions
     {

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 #pragma warning disable 1591
 
-namespace Frends.Community.Oracle.Query
+namespace Frends.Community.Oracle
 {
     public enum QueryReturnType { Json, Xml, Csv };
     

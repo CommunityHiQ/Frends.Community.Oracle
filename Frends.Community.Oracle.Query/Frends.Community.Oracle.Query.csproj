@@ -1,19 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
     <Company>HiQ Finland</Company>
     <Description>Task for performing oracle queries</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-  </PropertyGroup>
+    <copyright>HiQ Finland</copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/CommunityHiQ/Frends.Community.Oracle</PackageProjectUrl>
+    <IncludeSource>true</IncludeSource>
+    <PackageTags>Frends</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>2.0.6</Version>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netstandard2.0\Frends.Community.Oracle.Query.xml</DocumentationFile>
-    <OutputPath></OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netstandard2.0\Frends.Community.Oracle.Query.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

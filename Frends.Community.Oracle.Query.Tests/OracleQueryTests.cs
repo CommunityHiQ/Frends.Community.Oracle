@@ -18,7 +18,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
         ConnectionProperties _conn = new ConnectionProperties
         {
-            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=<service name>)));User Id=<userid>;Password=<pass>;",
+            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XE)));User Id=SYSTEM;Password=0460b4ac69;",
             TimeoutSeconds = 900
         };
 
@@ -368,12 +368,10 @@ namespace Frends.Community.Oracle.Query.Tests
         [Category("RollBackTest")]
         public async Task RollBackTest_1()
         {
-            var q = new QueryProperties { Query = @"BEGIN
-insert into duplicate_inserttest_table (po_nr)values ('111111');
-insert into duplicate_inserttest_table (po_nr)values ('111111');
-END;" };
-
-
+            var q = new QueryProperties { Query = @"
+insert into duplicate_inserttest_table (po_nr)values ('111113');
+insert into duplicate_inserttest_table (po_nr)values ('111113');
+" };
 
             var o = new OutputProperties
             {
@@ -396,9 +394,9 @@ END;" };
             {
                  result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
             }
-            catch (Exception)
+            catch (Exception EE)
             {
-
+                Console.WriteLine(EE);
                 var q2 = new QueryProperties { Query = @"select * from duplicate_inserttest_table" };
                 result_debug = await QueryTask.Query(q2, o, _conn, options, new CancellationToken());
                 
@@ -457,7 +455,7 @@ END;",  InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"
 
 
 
-            Assert.AreEqual(result_debug.Result, "ROWCOUNT\r\n2\r\n");
+            Assert.AreEqual(result_debug.Result, "ROWCOUNT\r\n4\r\n");
         }
 
     }

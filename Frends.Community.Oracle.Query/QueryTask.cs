@@ -13,7 +13,7 @@ using Dapper;
 
 #pragma warning disable 1591
 
-namespace Frends.Community.Oracle.Query
+namespace Frends.Community.Oracle
 {
     public class QueryTask
     {
@@ -152,13 +152,13 @@ namespace Frends.Community.Oracle.Query
         /// <summary>
         /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
         /// </summary>
-        /// <param name="batchinput">Input parameters</param>
+        /// <param name="input">Input parameters</param>
         /// <param name="connection">Connection properties</param>
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Object { bool Success, string Message, string Result }</returns>
         public static async Task<BatchOperationOutput> BatchOperation(
-            [PropertyTab] InputBatchOperation batchinput,
+            [PropertyTab] InputBatchOperation input,
             [PropertyTab] ConnectionProperties connection,
             [PropertyTab] BatchOptions options,
             CancellationToken cancellationToken)
@@ -171,7 +171,7 @@ namespace Frends.Community.Oracle.Query
                     {
                         await c.OpenAsync(cancellationToken);
 
-                        using (var command = new OracleCommand(batchinput.Query, c))
+                        using (var command = new OracleCommand(input.Query, c))
                         {
                             command.CommandTimeout = connection.TimeoutSeconds;
                             command.BindByName = true; // is this xmlCommand specific?
@@ -183,11 +183,11 @@ namespace Frends.Community.Oracle.Query
                             OracleTransaction txn = c.BeginTransaction();
                             try
                             {
-                                var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(batchinput.InputJson, new ExpandoObjectConverter());
+                                var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(input.InputJson, new ExpandoObjectConverter());
                                 queryResult = await c.ExecuteAsync(
-                                    batchinput.Query,
+                                    input.Query,
                                     param: obj,
-                                    commandTimeout: batchinput.CommandTimeoutSeconds,
+                                    commandTimeout: input.CommandTimeoutSeconds,
                                     commandType: CommandType.Text,
                                     transaction: txn)
                                     .ConfigureAwait(false);
