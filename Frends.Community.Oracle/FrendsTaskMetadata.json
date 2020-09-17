@@ -1,7 +1,10 @@
 ﻿{
   "Tasks": [
     {
-      "TaskMethod": "Frends.Community.Oracle.Query.QueryTask.Query"
+      "TaskMethod": "Frends.Community.Oracle.OracleTasks.Query"
+    },
+	{
+      "TaskMethod": "Frends.Community.Oracle.OracleTasks.BatchOperation"
     }
   ]
 }
