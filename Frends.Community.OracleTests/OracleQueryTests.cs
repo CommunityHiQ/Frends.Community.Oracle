@@ -18,7 +18,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
         ConnectionProperties _conn = new ConnectionProperties
         {
-            ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=<service name>)));User Id=<userid>;Password=<pass>;",
+            ConnectionString = Environment.GetEnvironmentVariable("HIQ_ORACLEDB_CONNECTIONSTRING"),
             TimeoutSeconds = 900
         };
 
@@ -135,7 +135,7 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task ShouldReturnXmlString()
         {
             var q = new QueryProperties { Query = @"select * from HodorTest" };
-            var o = new OutputProperties
+            var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Xml,
                 XmlOutput = new XmlOutputProperties
@@ -144,9 +144,9 @@ namespace Frends.Community.Oracle.Query.Tests
                     RowElementName = "item"
                 }
             };
-            var options = new Options { ThrowErrorOnFailure = true };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
+            Output result = await OracleTasks.Query(q, o, _conn, options, new CancellationToken());
 
             Assert.AreEqual(@"<?xml version=""1.0"" encoding=""utf-16""?>
 <items>
@@ -166,7 +166,7 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task ShouldWriteXmlFile()
         {
             var q = new QueryProperties { Query = @"select name as ""name"", value as ""value"" from HodorTest" };
-            var o = new OutputProperties
+            var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Xml,
                 XmlOutput = new XmlOutputProperties
@@ -180,11 +180,11 @@ namespace Frends.Community.Oracle.Query.Tests
                     Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".xml")
                 }
             };
-            var options = new Options { ThrowErrorOnFailure = true };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
+            Output result = await OracleTasks.Query(q, o, _conn, options, new CancellationToken());
 
-            Assert.IsTrue(File.Exists(result.Result), "should have created xml output file");
+            Assert.IsTrue(File.Exists(result.Result), "should have created xml queryOutput file");
             Assert.AreEqual(
                 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <items>
@@ -209,14 +209,14 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task QueryDatabaseJSON()
         {
             var queryProperties = new QueryProperties { Query = "SELECT * FROM DecimalTest" };
-            var outputProperties = new OutputProperties
+            var outputProperties = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Json,
                 JsonOutput = new JsonOutputProperties()
             };
-            var options = new Options { ThrowErrorOnFailure = true };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await QueryTask.Query(queryProperties, outputProperties, _conn, options, new CancellationToken());
+            Output result = await OracleTasks.Query(queryProperties, outputProperties, _conn, options, new CancellationToken());
 
             Assert.AreNotEqual("", result.Result);
             Assert.AreEqual(true, result.Success);
@@ -227,15 +227,15 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task ShouldReturnJsonString()
         {
             var q = new QueryProperties { Query = @"select name as ""name"", value as ""value"" from HodorTest" };
-            var o = new OutputProperties
+            var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Json,
                 JsonOutput = new JsonOutputProperties(),
                 OutputToFile = false
             };
-            var options = new Options { ThrowErrorOnFailure = true };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
+            Output result = await OracleTasks.Query(q, o, _conn, options, new CancellationToken());
 
             Assert.IsTrue(string.Equals(result.Result, @"[
   {
@@ -254,7 +254,7 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task ShouldWriteJsonFile()
         {
             var q = new QueryProperties { Query = @"select name as ""name"", value as ""value"" from HodorTest" };
-            var o = new OutputProperties
+            var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Json,
                 JsonOutput = new JsonOutputProperties(),
@@ -264,9 +264,9 @@ namespace Frends.Community.Oracle.Query.Tests
                     Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
                 }
             };
-            var options = new Options { ThrowErrorOnFailure = true };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
+            Output result = await OracleTasks.Query(q, o, _conn, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(result.Result), "should have created json outputfile");
             Assert.AreEqual(@"[
@@ -288,7 +288,7 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task ShouldReturnCsvString()
         {
             var q = new QueryProperties { Query = @"select name as ""name"", value as ""value"" from HodorTest" };
-            var o = new OutputProperties
+            var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Csv,
                 CsvOutput = new CsvOutputProperties
@@ -297,9 +297,9 @@ namespace Frends.Community.Oracle.Query.Tests
                     IncludeHeaders = true
                 }
             };
-            var options = new Options { ThrowErrorOnFailure = true };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
+            Output result = await OracleTasks.Query(q, o, _conn, options, new CancellationToken());
 
             StringAssert.IsMatch(result.Result, "name;value\r\nhodor;123\r\njon;321\r\n");
         }
@@ -309,7 +309,7 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task ShouldWriteCsvFile()
         {
             var q = new QueryProperties { Query = "select * from HodorTest" };
-            var o = new OutputProperties
+            var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Csv,
                 CsvOutput = new CsvOutputProperties
@@ -323,11 +323,11 @@ namespace Frends.Community.Oracle.Query.Tests
                     Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".csv")
                 }
             };
-            var options = new Options { ThrowErrorOnFailure = true };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
+            Output result = await OracleTasks.Query(q, o, _conn, options, new CancellationToken());
 
-            Assert.IsTrue(File.Exists(result.Result), "should have created csv output file");
+            Assert.IsTrue(File.Exists(result.Result), "should have created csv queryOutput file");
             File.Delete(result.Result);
         }
 
@@ -339,7 +339,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
 
 
-            var o = new OutputProperties
+            var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Csv,
                 CsvOutput = new CsvOutputProperties
@@ -350,12 +350,12 @@ namespace Frends.Community.Oracle.Query.Tests
                 OutputToFile = false,
             };
 
-            var options = new Options();
+            var options = new QueryOptions();
             options.ThrowErrorOnFailure = true;
             options.IsolationLevel = Oracle_IsolationLevel.ReadCommitted;
 
 
-            Output result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
+            Output result = await OracleTasks.Query(q, o, _conn, options, new CancellationToken());
             Assert.AreEqual(result.Result, "NAME;SENDSTATUS\r\nHan_1;0\r\n");
 
         }
@@ -373,7 +373,7 @@ insert into duplicate_inserttest_table2 (po_nr)values ('2');
 insert into duplicate_inserttest_table2 (po_nr)values ('2');
 END;" };
 
-            var o = new OutputProperties
+            var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Csv,
                 CsvOutput = new CsvOutputProperties
@@ -384,7 +384,7 @@ END;" };
                 OutputToFile = false,
             };
 
-            var options = new Options();
+            var options = new QueryOptions();
             options.ThrowErrorOnFailure = true;
             options.IsolationLevel = Oracle_IsolationLevel.None;
             Output result = new Output();
@@ -393,7 +393,7 @@ END;" };
 
             try
             {
-                 result = await QueryTask.Query(q, o, _conn, options, new CancellationToken());
+                 result = await OracleTasks.Query(q, o, _conn, options, new CancellationToken());
             }
             catch (Exception ee)
              {
@@ -401,7 +401,7 @@ END;" };
                 ex_string = ee.ToString();
 
                 var q2 = new QueryProperties { Query = @"select * from duplicate_inserttest_table" };
-                result_debug = await QueryTask.Query(q2, o, _conn, options, new CancellationToken());
+                result_debug = await OracleTasks.Query(q2, o, _conn, options, new CancellationToken());
                 
             }
 
@@ -430,7 +430,7 @@ END;",  InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"
 
             try
             {
-                batch_output = await QueryTask.BatchOperation(inputbatch, _conn, options, new CancellationToken());
+                batch_output = await OracleTasks.BatchOperation(inputbatch, _conn, options, new CancellationToken());
             }
             catch (Exception ee)
             {
@@ -440,7 +440,7 @@ END;",  InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"
             }
 
             //Query rows from db, should be 2.
-            var o = new OutputProperties
+            var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Csv,
                 CsvOutput = new CsvOutputProperties
@@ -452,10 +452,10 @@ END;",  InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"
             };
 
             var q2 = new QueryProperties { Query = @"select count(*) as ROWCOUNT from batch_table_test" };
-            var options_2 = new Options();
+            var options_2 = new QueryOptions();
             options.ThrowErrorOnFailure = true;
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
-            var result_debug = await QueryTask.Query(q2, o, _conn, options_2, new CancellationToken());
+            var result_debug = await OracleTasks.Query(q2, o, _conn, options_2, new CancellationToken());
 
 
 

@@ -15,23 +15,23 @@ using Dapper;
 
 namespace Frends.Community.Oracle
 {
-    public class QueryTask
+    public class OracleTasks
     {
 
         /// <summary>
         /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
         /// </summary>
-        /// <param name="query"></param>
-        /// <param name="output"></param>
+        /// <param name="queryInput"></param>
+        /// <param name="queryOutput"></param>
         /// <param name="connection"></param>
-        /// <param name="options"></param>
+        /// <param name="queryOptions"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Object { bool Success, string Message, string Result }</returns>
         public static async Task<Output> Query(
-            [PropertyTab] QueryProperties query,
-            [PropertyTab] OutputProperties output,
+            [PropertyTab] QueryProperties queryInput,
+            [PropertyTab] QueryOutputProperties queryOutput,
             [PropertyTab] ConnectionProperties connection,
-            [PropertyTab] Options options,
+            [PropertyTab] QueryOptions queryOptions,
             CancellationToken cancellationToken)
         {
             try
@@ -42,35 +42,31 @@ namespace Frends.Community.Oracle
                     {
                         await c.OpenAsync(cancellationToken);
 
-                        using (var command = new OracleCommand(query.Query, c))
+                        using (var command = new OracleCommand(queryInput.Query, c))
                         {
                             command.CommandTimeout = connection.TimeoutSeconds;
                             command.BindByName = true; // is this xmlCommand specific?
 
-
-
                             // check for command parameters and set them
-                            if (query.Parameters != null)
-                                command.Parameters.AddRange(query.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
+                            if (queryInput.Parameters != null)
+                                command.Parameters.AddRange(queryInput.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
 
                             // declare Result object
                             string queryResult;
 
-
-                            if (options.IsolationLevel == Oracle_IsolationLevel.None)
+                            if (queryOptions.IsolationLevel == Oracle_IsolationLevel.None)
                             {
-
                                 // set commandType according to ReturnType
-                                switch (output.ReturnType)
+                                switch (queryOutput.ReturnType)
                                 {
                                     case QueryReturnType.Xml:
-                                        queryResult = await command.ToXmlAsync(output, cancellationToken);
+                                        queryResult = await command.ToXmlAsync(queryOutput, cancellationToken);
                                         break;
                                     case QueryReturnType.Json:
-                                        queryResult = await command.ToJsonAsync(output, cancellationToken);
+                                        queryResult = await command.ToJsonAsync(queryOutput, cancellationToken);
                                         break;
                                     case QueryReturnType.Csv:
-                                        queryResult = await command.ToCsvAsync(output, cancellationToken);
+                                        queryResult = await command.ToCsvAsync(queryOutput, cancellationToken);
                                         break;
                                     default:
                                         throw new ArgumentException("Task 'Return Type' was invalid! Check task properties.");
@@ -79,54 +75,42 @@ namespace Frends.Community.Oracle
                             }
                             else
                             {
-                                OracleTransaction txn = c.BeginTransaction(
-
-                                    options.IsolationLevel.GetTransactionIsolationLevel()); ;
+                                OracleTransaction txn = c.BeginTransaction(queryOptions.IsolationLevel.GetTransactionIsolationLevel()); ;
 
                                 try
                                 {
 
                                     // set commandType according to ReturnType
-                                    switch (output.ReturnType)
+                                    switch (queryOutput.ReturnType)
                                     {
                                         case QueryReturnType.Xml:
-                                            queryResult = await command.ToXmlAsync(output, cancellationToken);
+                                            queryResult = await command.ToXmlAsync(queryOutput, cancellationToken);
                                             txn.Commit();
                                             break;
                                         case QueryReturnType.Json:
-                                            queryResult = await command.ToJsonAsync(output, cancellationToken);
+                                            queryResult = await command.ToJsonAsync(queryOutput, cancellationToken);
                                             txn.Commit();
                                             break;
                                         case QueryReturnType.Csv:
-                                            queryResult = await command.ToCsvAsync(output, cancellationToken);
+                                            queryResult = await command.ToCsvAsync(queryOutput, cancellationToken);
                                             txn.Commit();
                                             break;
                                         default:
                                             throw new ArgumentException("Task 'Return Type' was invalid! Check task properties.");
                                     }
-
-
                                 }
-                                catch (Exception e) {
+                                catch (Exception) {
 
                                     txn.Rollback();
                                     txn.Dispose();
-                                    throw e;
+                                    throw;
                                 }
 
                                 txn.Dispose();
                                 return new Output { Success = true, Result = queryResult };
-
-
                             }
-
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        throw ex;
-                    }
-
                     finally
                     {
                         // Close connection
@@ -138,7 +122,7 @@ namespace Frends.Community.Oracle
             }
             catch (Exception ex)
             {
-                if (options.ThrowErrorOnFailure)
+                if (queryOptions.ThrowErrorOnFailure)
                     throw ex;
                 return new Output
                 {
@@ -180,36 +164,49 @@ namespace Frends.Community.Oracle
                             int queryResult;
 
 
-                            OracleTransaction txn = c.BeginTransaction();
-                            try
+                            if (options.IsolationLevel == Oracle_IsolationLevel.None)
                             {
-                                var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(input.InputJson, new ExpandoObjectConverter());
+                                var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(input.InputJson,
+                                    new ExpandoObjectConverter());
                                 queryResult = await c.ExecuteAsync(
-                                    input.Query,
-                                    param: obj,
-                                    commandTimeout: input.CommandTimeoutSeconds,
-                                    commandType: CommandType.Text,
-                                    transaction: txn)
+                                        input.Query,
+                                        param: obj,
+                                        commandTimeout: input.CommandTimeoutSeconds,
+                                        commandType: CommandType.Text)
                                     .ConfigureAwait(false);
-
-                                txn.Commit();
-                                txn.Dispose();
 
                                 return new BatchOperationOutput { Success = true, Result = queryResult };
                             }
-                            catch(Exception ee)
-                            {
-                                txn.Dispose();
-                                throw ee;
-                            }
-
-
-                        }
-                    }
-                    catch (Exception ex)
-                    {
                         
-                        throw ex;
+                            else
+                            {
+                                OracleTransaction txn =
+                                    c.BeginTransaction(options.IsolationLevel.GetTransactionIsolationLevel());
+                                try
+                                {
+                                    var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(input.InputJson,
+                                        new ExpandoObjectConverter());
+                                    queryResult = await c.ExecuteAsync(
+                                            input.Query,
+                                            param: obj,
+                                            commandTimeout: input.CommandTimeoutSeconds,
+                                            commandType: CommandType.Text,
+                                            transaction: txn)
+                                        .ConfigureAwait(false);
+
+                                    txn.Commit();
+                                    txn.Dispose();
+
+                                    return new BatchOperationOutput {Success = true, Result = queryResult};
+                                }
+                                catch (Exception)
+                                {
+                                    txn.Rollback();
+                                    txn.Dispose();
+                                    throw;
+                                }
+                            }
+                        }
                     }
 
                     finally
@@ -224,7 +221,7 @@ namespace Frends.Community.Oracle
             catch (Exception ex)
             {
                 if (options.ThrowErrorOnFailure)
-                    throw ex;
+                    throw;
                 return new BatchOperationOutput
                 {
                     Success = false,
@@ -232,7 +229,6 @@ namespace Frends.Community.Oracle
                 };
             }
         }
-
 
         public static OracleParameter CreateOracleParameter(QueryParameter parameter)
         {

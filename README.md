@@ -1,4 +1,4 @@
-# Frends.Community.Oracle.Query
+# Frends.Community.Oracle
 
 FRENDS 4 Task for querying data from Oracle database
 

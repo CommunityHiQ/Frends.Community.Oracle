@@ -51,25 +51,25 @@ namespace Frends.Community.Oracle
         public QueryParameterType DataType { get; set; }
     }
 
-    public class OutputProperties
+    public class QueryOutputProperties
     {
         [DefaultValue(QueryReturnType.Xml)]
         public QueryReturnType ReturnType { get; set; }
 
         /// <summary>
-        /// Xml specific output properties
+        /// Xml specific queryOutput properties
         /// </summary>
         [UIHint(nameof(ReturnType), "", QueryReturnType.Xml)]
         public XmlOutputProperties XmlOutput { get; set; }
 
         /// <summary>
-        /// Json specific output properties
+        /// Json specific queryOutput properties
         /// </summary>
         [UIHint(nameof(ReturnType), "", QueryReturnType.Json)]
         public JsonOutputProperties JsonOutput { get; set; }
 
         /// <summary>
-        /// Csv specific output properties
+        /// Csv specific queryOutput properties
         /// </summary>
         [UIHint(nameof(ReturnType), "", QueryReturnType.Csv)]
         public CsvOutputProperties CsvOutput { get; set; }
@@ -104,7 +104,7 @@ namespace Frends.Community.Oracle
 
     public enum Oracle_IsolationLevel { None, ReadCommitted, Serializable }
 
-    public class Options
+    public class QueryOptions
     {
         /// <summary>
         /// Choose if error should be thrown if Task failes.
@@ -155,7 +155,7 @@ namespace Frends.Community.Oracle
     }
 
     /// <summary>
-    /// Xml output specific properties
+    /// Xml queryOutput specific properties
     /// </summary>
     public class XmlOutputProperties
     {
@@ -181,7 +181,7 @@ namespace Frends.Community.Oracle
     }
 
     /// <summary>
-    /// Json output specific properties
+    /// Json queryOutput specific properties
     /// </summary>
     public class JsonOutputProperties
     {
@@ -193,12 +193,12 @@ namespace Frends.Community.Oracle
     }
 
     /// <summary>
-    /// Csv output specific properties
+    /// Csv queryOutput specific properties
     /// </summary>
     public class CsvOutputProperties
     {
         /// <summary>
-        /// Include headers in csv output file?
+        /// Include headers in csv queryOutput file?
         /// </summary>
         public bool IncludeHeaders { get; set; }
 
@@ -216,10 +216,10 @@ namespace Frends.Community.Oracle
     public class OutputFileProperties
     {
         /// <summary>
-        /// Query output filepath
+        /// Query queryOutput filepath
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
-        [DefaultValue("c:\\temp\\output.csv")]
+        [DefaultValue("c:\\temp\\queryOutput.csv")]
         public string Path { get; set; }
 
         /// <summary>
