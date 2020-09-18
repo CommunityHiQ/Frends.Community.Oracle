@@ -222,7 +222,7 @@ namespace Frends.Community.Oracle
     public class OutputFileProperties
     {
         /// <summary>
-        /// Query queryOutput filepath
+        /// ExecuteQueryOracle queryOutput filepath
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("c:\\temp\\queryOutput.csv")]
@@ -239,7 +239,7 @@ namespace Frends.Community.Oracle
     public class InputBatchOperation
     {
         /// <summary>
-        /// Query string for batch operation.
+        /// ExecuteQueryOracle string for batch operation.
         /// </summary>
         [DisplayFormat(DataFormatString = "Sql")]
         [DefaultValue("insert into MyTable(ID,NAME) VALUES (:Id, :FirstName)")]

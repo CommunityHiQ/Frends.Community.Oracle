@@ -19,14 +19,14 @@ namespace Frends.Community.Oracle
     {
 
         /// <summary>
-        /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
+        /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.ExecuteQueryOracle
         /// </summary>
         /// <param name="queryInput"></param>
         /// <param name="queryOutput"></param>
         /// <param name="queryOptions"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Object { bool Success, string Message, string Result }</returns>
-        public static async Task<Output> Query(
+        public static async Task<Output> ExecuteQueryOracle(
             [PropertyTab] QueryProperties queryInput,
             [PropertyTab] QueryOutputProperties queryOutput,
             [PropertyTab] QueryOptions queryOptions,
@@ -132,13 +132,13 @@ namespace Frends.Community.Oracle
 
 
         /// <summary>
-        /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
+        /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.ExecuteQueryOracle
         /// </summary>
         /// <param name="input">Input parameters</param>
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Object { bool Success, string Message, string Result }</returns>
-        public static async Task<BatchOperationOutput> BatchOperation(
+        public static async Task<BatchOperationOutput> BatchOperationOracle(
             [PropertyTab] InputBatchOperation input,
             [PropertyTab] BatchOptions options,
             CancellationToken cancellationToken)

@@ -143,7 +143,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.Query(q, o, options, new CancellationToken());
+            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
             Assert.AreEqual(@"<?xml version=""1.0"" encoding=""utf-16""?>
 <items>
@@ -179,7 +179,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.Query(q, o, options, new CancellationToken());
+            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(result.Result), "should have created xml queryOutput file");
             Assert.AreEqual(
@@ -213,7 +213,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.Query(queryProperties, outputProperties, options, new CancellationToken());
+            Output result = await OracleTasks.ExecuteQueryOracle(queryProperties, outputProperties, options, new CancellationToken());
 
             Assert.AreNotEqual("", result.Result);
             Assert.AreEqual(true, result.Success);
@@ -232,7 +232,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.Query(q, o, options, new CancellationToken());
+            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
             Assert.IsTrue(string.Equals(result.Result, @"[
   {
@@ -263,7 +263,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.Query(q, o, options, new CancellationToken());
+            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(result.Result), "should have created json outputfile");
             Assert.AreEqual(@"[
@@ -296,7 +296,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.Query(q, o, options, new CancellationToken());
+            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
             StringAssert.IsMatch(result.Result, "name;value\r\nhodor;123\r\njon;321\r\n");
         }
@@ -322,7 +322,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.Query(q, o, options, new CancellationToken());
+            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(result.Result), "should have created csv queryOutput file");
             File.Delete(result.Result);
@@ -352,7 +352,7 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.ReadCommitted;
 
 
-            Output result = await OracleTasks.Query(q, o, options, new CancellationToken());
+            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
             Assert.AreEqual(result.Result, "NAME;SENDSTATUS\r\nHan_1;0\r\n");
 
         }
@@ -390,7 +390,7 @@ END;", ConnectionString = ConnectionString };
 
             try
             {
-                 result = await OracleTasks.Query(q, o, options, new CancellationToken());
+                 result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
             }
             catch (Exception ee)
              {
@@ -398,7 +398,7 @@ END;", ConnectionString = ConnectionString };
                 ex_string = ee.ToString();
 
                 var q2 = new QueryProperties { Query = @"select * from duplicate_inserttest_table", ConnectionString = ConnectionString };
-                result_debug = await OracleTasks.Query(q2, o, options, new CancellationToken());
+                result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options, new CancellationToken());
                 
             }
 
@@ -427,14 +427,14 @@ END;",  InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"
 
             try
             {
-                batch_output = await OracleTasks.BatchOperation(inputbatch, options, new CancellationToken());
+                batch_output = await OracleTasks.BatchOperationOracle(inputbatch, options, new CancellationToken());
             }
             catch (Exception ee)
             {
                 throw ee;
             }
 
-            //Query rows from db, should be 2.
+            //ExecuteQueryOracle rows from db, should be 2.
             var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Csv,
@@ -450,7 +450,7 @@ END;",  InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"
             var options_2 = new QueryOptions();
             options.ThrowErrorOnFailure = true;
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
-            var result_debug = await OracleTasks.Query(q2, o, options_2, new CancellationToken());
+            var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
             Assert.AreEqual(result_debug.Result, "ROWCOUNT\r\n4\r\n");
         }
