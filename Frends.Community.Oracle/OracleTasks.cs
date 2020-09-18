@@ -167,7 +167,7 @@ namespace Frends.Community.Oracle
                                 queryResult = await c.ExecuteAsync(
                                         input.Query,
                                         param: obj,
-                                        commandTimeout: input.CommandTimeoutSeconds,
+                                        commandTimeout: options.TimeoutSeconds,
                                         commandType: CommandType.Text)
                                     .ConfigureAwait(false);
 
@@ -185,7 +185,7 @@ namespace Frends.Community.Oracle
                                     queryResult = await c.ExecuteAsync(
                                             input.Query,
                                             param: obj,
-                                            commandTimeout: input.CommandTimeoutSeconds,
+                                            commandTimeout: options.TimeoutSeconds,
                                             commandType: CommandType.Text,
                                             transaction: txn)
                                         .ConfigureAwait(false);

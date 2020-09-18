@@ -252,9 +252,6 @@ namespace Frends.Community.Oracle
         [DefaultValue("[{\"Id\":15,\"FirstName\":\"Foo\"},{\"Id\":20,\"FirstName\":\"Bar\"}]")]
         public string InputJson { get; set; }
 
-        [DefaultValue(60)]
-        public int CommandTimeoutSeconds { get; set; }
-
         /// <summary>
         /// Oracle connection string
         /// </summary>
