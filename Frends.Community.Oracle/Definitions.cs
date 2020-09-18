@@ -235,7 +235,7 @@ namespace Frends.Community.Oracle
         /// <summary>
         /// Query string for batch operation.
         /// </summary>
-        [DisplayFormat(DataFormatString = "Query")]
+        [DisplayFormat(DataFormatString = "Sql")]
         [DefaultValue("insert into MyTable(ID,NAME) VALUES (:Id, :FirstName)")]
         public string Query { get; set; }
 
