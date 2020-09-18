@@ -34,6 +34,12 @@ namespace Frends.Community.Oracle
         {
             try
             {
+                if (queryOptions.EnableDetaildLogging == true)
+                {
+                    OracleConfiguration.TraceFileLocation = queryOptions.TraceFileLocation;
+                    OracleConfiguration.TraceLevel = queryOptions.TraceLevel;
+                }
+
                 using (var c = new OracleConnection(queryInput.ConnectionString))
                 {
                     try

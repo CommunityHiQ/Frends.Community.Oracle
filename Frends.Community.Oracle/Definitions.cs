@@ -116,6 +116,28 @@ namespace Frends.Community.Oracle
         /// </summary>
         [DefaultValue(30)]
         public int TimeoutSeconds { get; set; }
+
+
+        /// <summary>
+        /// EnableDetaildLogging
+        /// </summary>
+        [DefaultValue(false)]
+        public bool EnableDetaildLogging { get; set; }
+
+        /// <summary>
+        /// TraceLevel
+        /// </summary>
+        [UIHint(nameof(EnableDetaildLogging), "", true)]
+        [DefaultValue(7)]
+        public int TraceLevel { get; set; }
+
+        /// <summary>
+        /// TraceFileLocation
+        /// </summary>
+        [UIHint(nameof(EnableDetaildLogging), "", true)]
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue(@"C:\temp")]
+        public string TraceFileLocation { get; set; }
     }
 
     public class BatchOptions
