@@ -23,20 +23,18 @@ namespace Frends.Community.Oracle
         /// </summary>
         /// <param name="queryInput"></param>
         /// <param name="queryOutput"></param>
-        /// <param name="connection"></param>
         /// <param name="queryOptions"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Object { bool Success, string Message, string Result }</returns>
         public static async Task<Output> Query(
             [PropertyTab] QueryProperties queryInput,
             [PropertyTab] QueryOutputProperties queryOutput,
-            [PropertyTab] ConnectionProperties connection,
             [PropertyTab] QueryOptions queryOptions,
             CancellationToken cancellationToken)
         {
             try
             {
-                using (var c = new OracleConnection(connection.ConnectionString))
+                using (var c = new OracleConnection(queryInput.ConnectionString))
                 {
                     try
                     {
@@ -44,7 +42,7 @@ namespace Frends.Community.Oracle
 
                         using (var command = new OracleCommand(queryInput.Query, c))
                         {
-                            command.CommandTimeout = connection.TimeoutSeconds;
+                            command.CommandTimeout = queryOptions.TimeoutSeconds;
                             command.BindByName = true; // is this xmlCommand specific?
 
                             // check for command parameters and set them
@@ -137,19 +135,17 @@ namespace Frends.Community.Oracle
         /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.Query
         /// </summary>
         /// <param name="input">Input parameters</param>
-        /// <param name="connection">Connection properties</param>
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Object { bool Success, string Message, string Result }</returns>
         public static async Task<BatchOperationOutput> BatchOperation(
             [PropertyTab] InputBatchOperation input,
-            [PropertyTab] ConnectionProperties connection,
             [PropertyTab] BatchOptions options,
             CancellationToken cancellationToken)
         {
             try
             {
-                using (var c = new OracleConnection(connection.ConnectionString))
+                using (var c = new OracleConnection(input.ConnectionString))
                 {
                     try
                     {
@@ -157,7 +153,7 @@ namespace Frends.Community.Oracle
 
                         using (var command = new OracleCommand(input.Query, c))
                         {
-                            command.CommandTimeout = connection.TimeoutSeconds;
+                            command.CommandTimeout = options.TimeoutSeconds;
                             command.BindByName = true; // is this xmlCommand specific?
 
                             // declare Result object

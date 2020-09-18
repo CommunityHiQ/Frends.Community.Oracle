@@ -26,6 +26,13 @@ namespace Frends.Community.Oracle
         /// Parameters for the database query
         /// </summary>
         public QueryParameter[] Parameters { get; set; }
+
+        /// <summary>
+        /// Oracle connection string
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
+        public string ConnectionString { get; set; }
     }
 
     public class QueryParameter
@@ -86,21 +93,7 @@ namespace Frends.Community.Oracle
         public OutputFileProperties OutputFile { get; set; }
     }
 
-    public class ConnectionProperties
-    {
-        /// <summary>
-        /// Oracle connection string
-        /// </summary>
-        [DisplayFormat(DataFormatString = "Text")]
-        [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
-        public string ConnectionString { get; set; }
 
-        /// <summary>
-        /// Timeout value in seconds
-        /// </summary>
-        [DefaultValue(30)]
-        public int TimeoutSeconds { get; set; }
-    }
 
     public enum Oracle_IsolationLevel { None, ReadCommitted, Serializable }
 
@@ -117,6 +110,12 @@ namespace Frends.Community.Oracle
         /// Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Default is Serializable.
         /// </summary>
         public Oracle_IsolationLevel IsolationLevel { get; set; }
+
+        /// <summary>
+        /// Timeout value in seconds
+        /// </summary>
+        [DefaultValue(30)]
+        public int TimeoutSeconds { get; set; }
     }
 
     public class BatchOptions
@@ -132,6 +131,13 @@ namespace Frends.Community.Oracle
         /// Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Default is Serializable.
         /// </summary>
         public Oracle_IsolationLevel IsolationLevel { get; set; }
+
+        /// <summary>
+        /// Timeout value in seconds
+        /// </summary>
+        [DefaultValue(30)]
+        public int TimeoutSeconds { get; set; }
+
     }
 
     /// <summary>
@@ -248,6 +254,13 @@ namespace Frends.Community.Oracle
 
         [DefaultValue(60)]
         public int CommandTimeoutSeconds { get; set; }
+
+        /// <summary>
+        /// Oracle connection string
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
+        public string ConnectionString { get; set; }
 
     }
 }
