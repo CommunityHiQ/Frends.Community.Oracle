@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel;
+using System.Data;
 using System.ComponentModel.DataAnnotations;
 
 #pragma warning disable 1591
 
-namespace Frends.Community.Oracle.Query
+namespace Frends.Community.Oracle
 {
     public enum QueryReturnType { Json, Xml, Csv };
     
@@ -25,6 +26,13 @@ namespace Frends.Community.Oracle.Query
         /// Parameters for the database query
         /// </summary>
         public QueryParameter[] Parameters { get; set; }
+
+        /// <summary>
+        /// Oracle connection string
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
+        public string ConnectionString { get; set; }
     }
 
     public class QueryParameter
@@ -50,25 +58,25 @@ namespace Frends.Community.Oracle.Query
         public QueryParameterType DataType { get; set; }
     }
 
-    public class OutputProperties
+    public class QueryOutputProperties
     {
         [DefaultValue(QueryReturnType.Xml)]
         public QueryReturnType ReturnType { get; set; }
 
         /// <summary>
-        /// Xml specific output properties
+        /// Xml specific queryOutput properties
         /// </summary>
         [UIHint(nameof(ReturnType), "", QueryReturnType.Xml)]
         public XmlOutputProperties XmlOutput { get; set; }
 
         /// <summary>
-        /// Json specific output properties
+        /// Json specific queryOutput properties
         /// </summary>
         [UIHint(nameof(ReturnType), "", QueryReturnType.Json)]
         public JsonOutputProperties JsonOutput { get; set; }
 
         /// <summary>
-        /// Csv specific output properties
+        /// Csv specific queryOutput properties
         /// </summary>
         [UIHint(nameof(ReturnType), "", QueryReturnType.Csv)]
         public CsvOutputProperties CsvOutput { get; set; }
@@ -85,23 +93,11 @@ namespace Frends.Community.Oracle.Query
         public OutputFileProperties OutputFile { get; set; }
     }
 
-    public class ConnectionProperties
-    {
-        /// <summary>
-        /// Oracle connection string
-        /// </summary>
-        [DisplayFormat(DataFormatString = "Text")]
-        [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
-        public string ConnectionString { get; set; }
 
-        /// <summary>
-        /// Timeout value in seconds
-        /// </summary>
-        [DefaultValue(30)]
-        public int TimeoutSeconds { get; set; }
-    }
 
-    public class Options
+    public enum Oracle_IsolationLevel { None, ReadCommitted, Serializable }
+
+    public class QueryOptions
     {
         /// <summary>
         /// Choose if error should be thrown if Task failes.
@@ -111,25 +107,58 @@ namespace Frends.Community.Oracle.Query
         public bool ThrowErrorOnFailure { get; set; }
 
         /// <summary>
-        /// a
+        /// Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Default is Serializable.
+        /// </summary>
+        public Oracle_IsolationLevel IsolationLevel { get; set; }
+
+        /// <summary>
+        /// Timeout value in seconds
+        /// </summary>
+        [DefaultValue(30)]
+        public int TimeoutSeconds { get; set; }
+
+
+        /// <summary>
+        /// EnableDetaildLogging
         /// </summary>
         [DefaultValue(false)]
         public bool EnableDetaildLogging { get; set; }
 
         /// <summary>
-        /// a
+        /// TraceLevel
         /// </summary>
         [UIHint(nameof(EnableDetaildLogging), "", true)]
         [DefaultValue(7)]
         public int TraceLevel { get; set; }
 
         /// <summary>
-        /// a
+        /// TraceFileLocation
         /// </summary>
         [UIHint(nameof(EnableDetaildLogging), "", true)]
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue(@"C:\temp")]
         public string TraceFileLocation { get; set; }
+    }
+
+    public class BatchOptions
+    {
+        /// <summary>
+        /// Choose if error should be thrown if Task failes.
+        /// Otherwise returns Object {Success = false }
+        /// </summary>
+        [DefaultValue(true)]
+        public bool ThrowErrorOnFailure { get; set; }
+
+        /// <summary>
+        /// Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Default is Serializable.
+        /// </summary>
+        public Oracle_IsolationLevel IsolationLevel { get; set; }
+
+        /// <summary>
+        /// Timeout value in seconds
+        /// </summary>
+        [DefaultValue(30)]
+        public int TimeoutSeconds { get; set; }
 
     }
 
@@ -144,7 +173,17 @@ namespace Frends.Community.Oracle.Query
     }
 
     /// <summary>
-    /// Xml output specific properties
+    /// Result to be returned from task
+    /// </summary>
+    public class BatchOperationOutput
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public int Result { get; set; }
+    }
+
+    /// <summary>
+    /// Xml queryOutput specific properties
     /// </summary>
     public class XmlOutputProperties
     {
@@ -170,7 +209,7 @@ namespace Frends.Community.Oracle.Query
     }
 
     /// <summary>
-    /// Json output specific properties
+    /// Json queryOutput specific properties
     /// </summary>
     public class JsonOutputProperties
     {
@@ -182,12 +221,12 @@ namespace Frends.Community.Oracle.Query
     }
 
     /// <summary>
-    /// Csv output specific properties
+    /// Csv queryOutput specific properties
     /// </summary>
     public class CsvOutputProperties
     {
         /// <summary>
-        /// Include headers in csv output file?
+        /// Include headers in csv queryOutput file?
         /// </summary>
         public bool IncludeHeaders { get; set; }
 
@@ -205,10 +244,10 @@ namespace Frends.Community.Oracle.Query
     public class OutputFileProperties
     {
         /// <summary>
-        /// Query output filepath
+        /// ExecuteQueryOracle queryOutput filepath
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
-        [DefaultValue("c:\\temp\\output.csv")]
+        [DefaultValue("c:\\temp\\queryOutput.csv")]
         public string Path { get; set; }
 
         /// <summary>
@@ -217,5 +256,30 @@ namespace Frends.Community.Oracle.Query
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("utf-8")]
         public string Encoding { get; set; }
+    }
+
+    public class InputBatchOperation
+    {
+        /// <summary>
+        /// ExecuteQueryOracle string for batch operation.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Sql")]
+        [DefaultValue("insert into MyTable(ID,NAME) VALUES (:Id, :FirstName)")]
+        public string Query { get; set; }
+
+        /// <summary>
+        /// Input json for batch operation. Needs to be a Json array.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Json")]
+        [DefaultValue("[{\"Id\":15,\"FirstName\":\"Foo\"},{\"Id\":20,\"FirstName\":\"Bar\"}]")]
+        public string InputJson { get; set; }
+
+        /// <summary>
+        /// Oracle connection string
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
+        public string ConnectionString { get; set; }
+
     }
 }

@@ -11,41 +11,51 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Frends.Community.Oracle.Query
+namespace Frends.Community.Oracle
 {
     static class Extensions
     {
+
+        internal static System.Data.IsolationLevel GetTransactionIsolationLevel(this Oracle_IsolationLevel Oracle_IsolationLevel)
+        {
+            return GetEnum<IsolationLevel>(Oracle_IsolationLevel);
+        }
+
+        private static T GetEnum<T>(Enum enumValue)
+        {
+            return (T)Enum.Parse(typeof(T), enumValue.ToString());
+        }
+
         public static TEnum ConvertEnum<TEnum>(this Enum source)
         {
             return (TEnum)Enum.Parse(typeof(TEnum), source.ToString(), true);
         }
-
         /// <summary>
         /// Write query results to csv string or file
         /// </summary>
         /// <param name="command"></param>
-        /// <param name="output"></param>
+        /// <param name="queryOutput"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> ToXmlAsync(this OracleCommand command, OutputProperties output, CancellationToken cancellationToken)
+        public static async Task<string> ToXmlAsync(this OracleCommand command, QueryOutputProperties queryOutput, CancellationToken cancellationToken)
         {
             command.CommandType = CommandType.Text;
             
             // utf-8 as default encoding
-            Encoding encoding = string.IsNullOrWhiteSpace(output.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(output.OutputFile.Encoding);
+            Encoding encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
 
-            using (TextWriter writer = output.OutputToFile ? new StreamWriter(output.OutputFile.Path, false, encoding) : new StringWriter() as TextWriter)
+            using (TextWriter writer = queryOutput.OutputToFile ? new StreamWriter(queryOutput.OutputFile.Path, false, encoding) : new StringWriter() as TextWriter)
             using (OracleDataReader reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
             {
                 using (XmlWriter xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Async = true, Indent = true }))
                 {
                     await xmlWriter.WriteStartDocumentAsync();
-                    await xmlWriter.WriteStartElementAsync("", output.XmlOutput.RootElementName, "");
+                    await xmlWriter.WriteStartElementAsync("", queryOutput.XmlOutput.RootElementName, "");
 
                     while (await reader.ReadAsync(cancellationToken))
                     {
                         // single row element container
-                        await xmlWriter.WriteStartElementAsync("", output.XmlOutput.RowElementName, "");
+                        await xmlWriter.WriteStartElementAsync("", queryOutput.XmlOutput.RowElementName, "");
 
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
@@ -63,9 +73,9 @@ namespace Frends.Community.Oracle.Query
                     await xmlWriter.WriteEndDocumentAsync();
                 }
 
-                if (output.OutputToFile)
+                if (queryOutput.OutputToFile)
                 {
-                    return output.OutputFile.Path;
+                    return queryOutput.OutputFile.Path;
                 }
                 else
                 {
@@ -78,23 +88,23 @@ namespace Frends.Community.Oracle.Query
         /// Write query results to json string or file
         /// </summary>
         /// <param name="command"></param>
-        /// <param name="output"></param>
+        /// <param name="queryOutput"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> ToJsonAsync(this OracleCommand command, OutputProperties output, CancellationToken cancellationToken)
+        public static async Task<string> ToJsonAsync(this OracleCommand command, QueryOutputProperties queryOutput, CancellationToken cancellationToken)
         {
             command.CommandType = CommandType.Text;
             
             using (OracleDataReader reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
             {
-                var culture = String.IsNullOrWhiteSpace(output.JsonOutput.CultureInfo) ? CultureInfo.InvariantCulture : new CultureInfo(output.JsonOutput.CultureInfo);
+                var culture = String.IsNullOrWhiteSpace(queryOutput.JsonOutput.CultureInfo) ? CultureInfo.InvariantCulture : new CultureInfo(queryOutput.JsonOutput.CultureInfo);
 
                 // utf-8 as default encoding
-                Encoding encoding = string.IsNullOrWhiteSpace(output.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(output.OutputFile.Encoding);
+                Encoding encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
 
                 // create json result
-                using (var fileWriter = output.OutputToFile ? new StreamWriter(output.OutputFile.Path, false, encoding) : null)
-                using (var writer = output.OutputToFile ? new JsonTextWriter(fileWriter) : new JTokenWriter() as JsonWriter)
+                using (var fileWriter = queryOutput.OutputToFile ? new StreamWriter(queryOutput.OutputFile.Path, false, encoding) : null)
+                using (var writer = queryOutput.OutputToFile ? new JsonTextWriter(fileWriter) : new JTokenWriter() as JsonWriter)
                 {
                     writer.Formatting = Newtonsoft.Json.Formatting.Indented;
                     writer.Culture = culture;
@@ -141,9 +151,9 @@ namespace Frends.Community.Oracle.Query
                     // end array
                     await writer.WriteEndArrayAsync(cancellationToken);
 
-                    if (output.OutputToFile)
+                    if (queryOutput.OutputToFile)
                     {
-                        return output.OutputFile.Path;
+                        return queryOutput.OutputFile.Path;
                     }
                     else
                     {
@@ -157,32 +167,32 @@ namespace Frends.Community.Oracle.Query
         /// Write query results to csv string or file
         /// </summary>
         /// <param name="command"></param>
-        /// <param name="output"></param>
+        /// <param name="queryOutput"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> ToCsvAsync(this OracleCommand command, OutputProperties output, CancellationToken cancellationToken)
+        public static async Task<string> ToCsvAsync(this OracleCommand command, QueryOutputProperties queryOutput, CancellationToken cancellationToken)
         {
             command.CommandType = CommandType.Text;
 
             // utf-8 as default encoding
-            Encoding encoding = string.IsNullOrWhiteSpace(output.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(output.OutputFile.Encoding);
+            Encoding encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
 
             using (OracleDataReader reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
-            using (TextWriter w = output.OutputToFile ? new StreamWriter(output.OutputFile.Path, false, encoding) : new StringWriter() as TextWriter)
+            using (TextWriter w = queryOutput.OutputToFile ? new StreamWriter(queryOutput.OutputFile.Path, false, encoding) : new StringWriter() as TextWriter)
             {
                 bool headerWritten = false;
 
                 while (await reader.ReadAsync(cancellationToken))
                 {
                     // write csv header if necessary
-                    if (!headerWritten && output.CsvOutput.IncludeHeaders)
+                    if (!headerWritten && queryOutput.CsvOutput.IncludeHeaders)
                     {
                         var fieldNames = new object[reader.FieldCount];
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
                             fieldNames[i] = reader.GetName(i);
                         }
-                        await w.WriteLineAsync(string.Join(output.CsvOutput.CsvSeparator, fieldNames));
+                        await w.WriteLineAsync(string.Join(queryOutput.CsvOutput.CsvSeparator, fieldNames));
                         headerWritten = true;
                     }
 
@@ -191,15 +201,15 @@ namespace Frends.Community.Oracle.Query
                     {
                         fieldValues[i] = reader.GetValue(i);
                     }
-                    await w.WriteLineAsync(string.Join(output.CsvOutput.CsvSeparator, fieldValues));
+                    await w.WriteLineAsync(string.Join(queryOutput.CsvOutput.CsvSeparator, fieldValues));
 
                     // write only complete rows, but stop if process was terminated
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
-                if (output.OutputToFile)
+                if (queryOutput.OutputToFile)
                 {
-                    return output.OutputFile.Path;
+                    return queryOutput.OutputFile.Path;
                 }
                 else
                 {
