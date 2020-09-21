@@ -19,7 +19,7 @@ namespace Frends.Community.Oracle
     {
 
         /// <summary>
-        /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.ExecuteQueryOracle
+        /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
         /// </summary>
         /// <param name="queryInput"></param>
         /// <param name="queryOutput"></param>
@@ -138,7 +138,7 @@ namespace Frends.Community.Oracle
 
 
         /// <summary>
-        /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle.ExecuteQueryOracle
+        /// Create a query for a batch operation like insert. The query is executed with Dapper ExecuteAsync. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
         /// </summary>
         /// <param name="input">Input parameters</param>
         /// <param name="options"></param>

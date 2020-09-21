@@ -1,10 +1,10 @@
 # Frends.Community.Oracle
 
-FRENDS 4 Task for querying data from Oracle database
+FRENDS Task for querying data from Oracle database
 
 - [Installing](#installing)
 - [Task](#tasks)
-	- [Query](#query)
+	- [ExecuteQueryOracle](#ExecuteQueryOracle)
 	- [BatchOperation](#batchoperation)
 - [Building](#building)
 - [Contributing](#contributing)
@@ -12,22 +12,21 @@ FRENDS 4 Task for querying data from Oracle database
 
 # Installing
 
-You can install the task via FRENDS UI Task View or you can find the nuget package from the following nuget feed
-'Insert nuget feed here'
-
+You can install the task via frends UI Task View or you can find the NuGet package from the following NuGet feed https://www.myget.org/F/frends-community/api/v3/index.json and in Gallery view in MyGet https://www.myget.org/feed/frends-community/package/nuget/Frends.Community.Oracle
 # Task
 
-## Query
+## ExecuteQueryOracle
 
 Executes query against Oracle database.
 
-### Query Properties
+### Query input Properties
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Query | string | The query to execute | `SELECT * FROM Table WHERE field = :paramName`|
 | Parameters | array[Query Parameter] | Possible query parameters. See [Query Parameter](#query-parameter) |  |
+| Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
 
-#### Query Parameter
+#### Parameters Properties
 
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
@@ -35,7 +34,7 @@ Executes query against Oracle database.
 | Value | string | Parameter value | `myUser` |
 | Data type | enum<> | Parameter data type | `NVarchar2` |
 
-### Output
+### Query Output Properties
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Return type | enum<Json, Xml, Csv> | Data return type format | `Json` |
@@ -44,20 +43,32 @@ Executes query against Oracle database.
 #### Xml Output
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| RootElementName | string | Xml root element name | `items` |
-| RowElementName |string | Xml row element name | `item` |
-| MaximumRows | int | The maximum amount of rows to return; defaults to -1 eg. no limit | `1000` |
+| Root element name | string | Xml root element name | `items` |
+| Row element name |string | Xml row element name | `item` |
+| Maximum rows | int | The maximum amount of rows to return; defaults to -1 eg. no limit | `1000` |
+| Output to file | boolean | If true, write output to file, instead returning it. | `true` |
+| Path | boolean | Path where file is written. | `c:\temp\queryOutput.xml` |
+| Encoding | boolean | Set encoding of file. | `utf-8` |
+
 
 #### Json Output
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Culture info | string | Specify the culture info to be used when parsing result to JSON. If this is left empty InvariantCulture will be used. [List of cultures](https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx) Use the Language Culture Name. | `fi-FI` |
+| Output to file | boolean | If true, write output to file, instead returning it. | `true` |
+| Path | boolean | Path where file is written. | `c:\temp\queryOutput.xml` |
+| Encoding | boolean | Set encoding of file. | `utf-8` |
+
 
 #### Csv Output
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| IncludeHeaders | bool | Include field names in the first row | `true` |
-| CsvSeparator | string | Csv separator to use in headers and data items | `;` |
+| Include headers | bool | Include field names in the first row | `true` |
+| Csv separator | string | Csv separator to use in headers and data items | `;` |
+| Output to file | boolean | If true, write output to file, instead returning it. | `true` |
+| Path | boolean | Path where file is written. | `c:\temp\queryOutput.xml` |
+| Encoding | boolean | Set encoding of file. | `utf-8` |
+
 
 #### Output File
 | Property    | Type       | Description     | Example |
@@ -65,19 +76,18 @@ Executes query against Oracle database.
 | Path | string | Output path with file name | `c:\temp\output.json` |
 | Encoding | string | Encoding to use for the output file | `utf-8` |
 
-### Connection
-
-| Property    | Type       | Description     | Example |
-| ------------| -----------| --------------- | ------- |
-| Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
-| Timeout seconds | int | Query timeout in seconds | `60` |
-
-### Options
+### Query Options
 
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
-| Transaction Isolation Level| Oracle_IsolationLevel | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  None, Serializable, ReadCommitted | None |
+| Isolation Level| enum<> | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  None, Serializable and ReadCommitted. | None |
+| Timeout seconds | int | Query timeout in seconds | `60` |
+| Enable detaild logging | bool | If true, enables setting additional tracing. If false tracing level is set to default value is 0 indicating tracing is disabled. However, errors will always be traced. | `false` |
+| Trace level | int | Valid Values: 1 = public APIs, 2 = private APIs, 4 = network APIs/data More information https://docs.oracle.com/en/database/oracle/oracle-data-access-components/18.3/odpnt/ConfigurationTraceLevel.html#GUID-E4A2B13E-E0AC-4E79-BCD9-51C4DBBBFEA5 | `60` |
+| Trace file location | string | Destination directory for trace files. Can not be left empty. | `%TEMP%\ODP.NET\core\trace` |
+
+
 
 ### Result
 
@@ -111,22 +121,16 @@ To access query result, use
 #result.Result
 ```
 
-## BatchOperation
+## BatchOperationOracle
 
-Create a query for a batch operation like insert. The query is executed with Dapper ExecuteAsync https://github.com/CommunityHiQ/Frends.Community.Oracle.Query/tree/master
+Create a query for a batch operation like insert. The query is executed with Dapper ExecuteAsync.
 
 ### Input
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Query | string | The query to execute | `insert into MyTable(ID,NAME) VALUES (@Id, @FirstName)`|
 | InputJson | string |A Json Array of objects that has their properties mapped to the parameters in the Query|[{"Id":10, "FirstName": "Foo"},{"Id":15, "FirstName": "Bar"}]  |
-
-### Connection
-
-| Property    | Type       | Description     | Example |
-| ------------| -----------| --------------- | ------- |
 | Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
-| Timeout seconds | int | Query timeout in seconds | `60` |
 
 ### Options
 
@@ -134,6 +138,7 @@ Create a query for a batch operation like insert. The query is executed with Dap
 | ------------| -----------| --------------- | ------- |
 | Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
 | Transaction Isolation Level| Oracle_IsolationLevel | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  Serializable, ReadCommitted | Serializable |
+| Timeout seconds | int | Query timeout in seconds | `60` |
 
 
 #### Result
@@ -143,21 +148,19 @@ Integer - Number of affected rows
 
 Clone a copy of the repo
 
-`git clone https://github.com/CommunityHiQ/Frends.Community.Oracle.Query.git`
-
-Restore dependencies
-
-`nuget restore frends.community.oracle.query`
+`git clone https://github.com/CommunityHiQ/Frends.Community.Oracle.git`
 
 Rebuild the project
 
-Run Tests with nunit3. Tests can be found under
+`dotnet build`
 
-`Frends.Community.Oracle.Query.Tests\bin\Release\Frends.Community.Oracle.Query.Tests.dll`
+Run Tests
 
-Create a nuget package
+`dotnet test`
 
-`nuget pack nuspec/Frends.Community.Oracle.Query.nuspec`
+Create a NuGet package
+
+`dotnet pack --configuration Release`
 
 # Contributing
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
@@ -177,3 +180,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.0.0 | Initial version of Oracle Query Task |
 | 2.0.0 | Breaking changes: target .netstandard, more user friendly task settings, csv output, all output types are now possibly to stream directly into a file |
 | 2.0.6 | Enabled detailed logging. |
+| 3.0.0 | Query ranamed and namespace changed to more generic to enable adding new task. Added BatchOperationOracle task.
