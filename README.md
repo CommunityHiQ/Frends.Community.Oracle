@@ -2,6 +2,8 @@
 
 FRENDS Task for querying data from Oracle database
 
+[![Actions Status](https://github.com/CommunityHiQ/Frends.Community.Oracle/workflows/PackAndPushAfterMerge/badge.svg)](https://github.com/CommunityHiQ/Frends.Community.Oracle/actions) ![MyGet](https://img.shields.io/myget/frends-community/v/Frends.Community.Oracle) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+
 - [Installing](#installing)
 - [Task](#tasks)
 	- [ExecuteQueryOracle](#ExecuteQueryOracle)
