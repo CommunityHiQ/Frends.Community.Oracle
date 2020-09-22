@@ -8,6 +8,7 @@ FRENDS Task for querying data from Oracle database
 - [Task](#tasks)
 	- [ExecuteQueryOracle](#ExecuteQueryOracle)
 	- [BatchOperation](#batchoperation)
+- [Known issues](#known-issues)
 - [Building](#building)
 - [Contributing](#contributing)
 - [Change Log](#change-log)
@@ -147,6 +148,12 @@ Create a query for a batch operation like insert. The query is executed with Dap
 #### Result
 Integer - Number of affected rows
 
+# Known issues
+
+FRENDS Agents try to keep their memory usage as low as possible by removing Processes from memory that are no longer being executed. Sometimes Oracle taskss cause issues when trying to remove old Processes by having handles open. This will cause memory consumption to rise until the Agent is restarted.
+
+This is caused by driver sometimes misshandling connections to Oracle Notification Services. This can be prevented, and thus solving the unloadability issue, by adding to connection string `ENLIST=false; HA EVENTS=false; LOAD BALANCING=false;` See more: https://stackoverflow.com/a/45943074/6734525
+ 
 # Building
 
 Clone a copy of the repo
