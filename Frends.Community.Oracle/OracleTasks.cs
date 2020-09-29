@@ -10,6 +10,7 @@ using System.Dynamic;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Dapper;
+using System.Collections.Generic;
 
 #pragma warning disable 1591
 
@@ -103,7 +104,8 @@ namespace Frends.Community.Oracle
                                             throw new ArgumentException("Task 'Return Type' was invalid! Check task properties.");
                                     }
                                 }
-                                catch (Exception) {
+                                catch (Exception)
+                                {
 
                                     txn.Rollback();
                                     txn.Dispose();
@@ -138,6 +140,198 @@ namespace Frends.Community.Oracle
 
 
         /// <summary>
+        /// Task to execute multiple queries with the same options
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="output"></param>
+        /// <param name="options"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        ///
+
+        public static async Task<MultiQueryOutput> TransactionalMultiQuery(
+            [PropertyTab] InputMultiQuery input,
+            [PropertyTab] QueryOutputProperties output,
+            [PropertyTab] QueryOptions options,
+            CancellationToken cancellationToken)
+        {
+
+            try
+            {
+                using (var c = new OracleConnection(input.ConnectionString))
+                {
+                    try
+                    {
+                        string queryResult;
+                        JArray queryResults = new JArray();
+
+                        await c.OpenAsync(cancellationToken);
+
+                        if (options.IsolationLevel == Oracle_IsolationLevel.None)
+                        {
+                            //set commandType according to ReturnType
+                            switch (output.ReturnType)
+                            {
+                                case QueryReturnType.Json:
+                                    foreach (var query in input.Queries)
+                                    {
+                                        var command = new OracleCommand(query, c);
+
+                                        if (input.Parameters != null)
+                                            command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
+
+                                        command.CommandTimeout = options.TimeoutSeconds;
+                                        command.BindByName = true;
+                                        queryResult = await command.ToJsonAsync(output, cancellationToken);
+                                        var result = new { queryIndex = Array.IndexOf(input.Queries, query), output = queryResult };
+                                        queryResults.Add(JObject.FromObject(result));
+                                    }
+                                    break;
+
+                                case QueryReturnType.Xml:
+
+                                    foreach (var query in input.Queries)
+                                    {
+                                        var command = new OracleCommand(query, c);
+
+                                        if (input.Parameters != null)
+                                            command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
+
+                                        command.CommandTimeout = options.TimeoutSeconds;
+                                        command.BindByName = true;
+                                        queryResult = await command.ToXmlAsync(output, cancellationToken);
+                                        var result = new { queryIndex = Array.IndexOf(input.Queries, query), output = queryResult };
+                                        queryResults.Add(JObject.FromObject(result));
+                                    }
+                                    break;
+
+                                case QueryReturnType.Csv:
+
+                                    foreach (var query in input.Queries)
+                                    {
+                                        var command = new OracleCommand(query, c);
+
+                                        if (input.Parameters != null)
+                                            command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
+
+                                        command.CommandTimeout = options.TimeoutSeconds;
+                                        command.BindByName = true;
+                                        queryResult = await command.ToCsvAsync(output, cancellationToken);
+                                        var result = new { queryIndex = Array.IndexOf(input.Queries, query), output = queryResult };
+                                        queryResults.Add(JObject.FromObject(result));
+                                    }
+                                    break;
+
+                                default:
+                                    throw new ArgumentException("Task 'Return Type' was invalid! Check task properties.");
+                            }
+
+                            return new MultiQueryOutput { Success = true, Result = queryResults };
+                        }
+                        else
+                        {
+                            OracleTransaction txn = c.BeginTransaction(options.IsolationLevel.GetTransactionIsolationLevel());
+
+                            try
+                            {
+                                //set commandType according to ReturnType
+                                switch (output.ReturnType)
+                                {
+                                    case QueryReturnType.Xml:
+                                        foreach (var query in input.Queries)
+                                        {
+                                            var command = new OracleCommand(query, c);
+
+                                            if (input.Parameters != null)
+                                                command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
+
+                                            command.CommandTimeout = options.TimeoutSeconds;
+                                            command.BindByName = true;
+                                            queryResult = await command.ToXmlAsync(output, cancellationToken);
+                                            var result = new { queryIndex = Array.IndexOf(input.Queries, query), output = queryResult };
+                                            queryResults.Add(JObject.FromObject(result));
+                                        }
+                                        txn.Commit();
+                                        break;
+
+                                    case QueryReturnType.Csv:
+                                        foreach (var query in input.Queries)
+                                        {
+                                            var command = new OracleCommand(query, c);
+
+                                            if (input.Parameters != null)
+                                                command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
+
+                                            command.CommandTimeout = options.TimeoutSeconds;
+                                            queryResult = await command.ToCsvAsync(output, cancellationToken);
+                                            var result = new { queryIndex = Array.IndexOf(input.Queries, query), output = queryResult };
+                                            queryResults.Add(JObject.FromObject(result));
+
+                                        }
+                                        txn.Commit();
+                                        break;
+
+                                    case QueryReturnType.Json:
+                                        foreach (var query in input.Queries)
+                                        {
+
+                                            var command = new OracleCommand(query, c);
+
+                                            if (input.Parameters != null)
+                                                command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
+
+                                            command.CommandTimeout = options.TimeoutSeconds;
+                                            queryResult = await command.ToJsonAsync(output, cancellationToken);
+                                            var result = new { queryIndex = Array.IndexOf(input.Queries, query), output = queryResult };
+                                            queryResults.Add(JObject.FromObject(result));
+
+                                        }
+                                        txn.Commit();
+                                        break;
+
+                                    default:
+                                        throw new ArgumentException("Task 'Return Type' was invalid! Check task properties.");
+                                }
+
+                            }
+                            catch (Exception)
+                            {
+
+                                txn.Rollback();
+                                txn.Dispose();
+                                throw;
+                            }
+
+                            txn.Dispose();
+                            return new MultiQueryOutput { Success = true, Result = queryResults };
+                        }
+
+                    }
+                    finally
+                    {
+                        //close connection
+                        c.Dispose();
+                        c.Close();
+                        OracleConnection.ClearPool(c);
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (options.ThrowErrorOnFailure)
+                    throw ex;
+                return new MultiQueryOutput
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+
+        }
+
+
+        /// <summary>
         /// Create a query for a batch operation like insert. The query is executed with Dapper ExecuteAsync. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
         /// </summary>
         /// <param name="input">Input parameters</param>
@@ -165,7 +359,6 @@ namespace Frends.Community.Oracle
                             // declare Result object
                             int queryResult;
 
-
                             if (options.IsolationLevel == Oracle_IsolationLevel.None)
                             {
                                 var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(input.InputJson,
@@ -179,7 +372,7 @@ namespace Frends.Community.Oracle
 
                                 return new BatchOperationOutput { Success = true, Result = queryResult };
                             }
-                        
+
                             else
                             {
                                 OracleTransaction txn =
@@ -199,7 +392,7 @@ namespace Frends.Community.Oracle
                                     txn.Commit();
                                     txn.Dispose();
 
-                                    return new BatchOperationOutput {Success = true, Result = queryResult};
+                                    return new BatchOperationOutput { Success = true, Result = queryResult };
                                 }
                                 catch (Exception)
                                 {

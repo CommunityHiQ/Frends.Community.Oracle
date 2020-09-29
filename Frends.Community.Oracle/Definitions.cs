@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Data;
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 #pragma warning disable 1591
 
@@ -175,6 +177,16 @@ namespace Frends.Community.Oracle
     /// <summary>
     /// Result to be returned from task
     /// </summary>
+    public class MultiQueryOutput
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public JArray Result { get; set; }
+    }
+
+    /// <summary>
+    /// Result to be returned from task
+    /// </summary>
     public class BatchOperationOutput
     {
         public bool Success { get; set; }
@@ -282,4 +294,35 @@ namespace Frends.Community.Oracle
         public string ConnectionString { get; set; }
 
     }
+
+    public class InputMultiQuery
+    {
+        ///<summary>
+        ///Array of queries to execute
+        ///</summary>
+
+        //public InputQuery[] Queries { get; set; }
+        public string [] Queries {get; set; }
+
+        /// <summary>
+        /// Parameters for the database query
+        /// </summary>
+        public QueryParameter[] Parameters { get; set; }
+
+        /// <summary>
+        /// Oracle connection string
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
+        public string ConnectionString { get; set; }
+
+    }
+
+    //public class InputQuery
+    //{
+    //    [DisplayFormat(DataFormatString = "Sql")]
+    //    [DefaultValue("SELECT ColumnName FROM TableName")]
+    //    public string Query { get; set; }
+
+    //}
 }
