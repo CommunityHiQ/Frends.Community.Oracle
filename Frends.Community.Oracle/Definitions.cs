@@ -3,13 +3,14 @@ using System.Data;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using System;
 
 #pragma warning disable 1591
 
 namespace Frends.Community.Oracle
 {
     public enum QueryReturnType { Json, Xml, Csv };
-    
+
     /// <summary>
     /// Enumerator representing oracle parameter data types
     /// </summary>
@@ -195,6 +196,16 @@ namespace Frends.Community.Oracle
     }
 
     /// <summary>
+    /// Result to be returned from task
+    /// </summary>
+    public class MultiqueryBatchOperationOutput
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public JArray Results { get; set; }
+    }
+
+    /// <summary>
     /// Xml queryOutput specific properties
     /// </summary>
     public class XmlOutputProperties
@@ -302,7 +313,7 @@ namespace Frends.Community.Oracle
         ///</summary>
 
         //public InputQuery[] Queries { get; set; }
-        public string [] Queries {get; set; }
+        public InputQuery[] Queries { get; set; }
 
         /// <summary>
         /// Parameters for the database query
@@ -318,11 +329,45 @@ namespace Frends.Community.Oracle
 
     }
 
-    //public class InputQuery
-    //{
-    //    [DisplayFormat(DataFormatString = "Sql")]
-    //    [DefaultValue("SELECT ColumnName FROM TableName")]
-    //    public string Query { get; set; }
+    public class InputQuery
+    {
+        /// <summary>
+        /// Multiquery array item
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Sql")]
+        [DefaultValue("SELECT ColumnName FROM TableName")]
+        public string InputQueryString { get; set; }
+    }
 
-    //}
+    public class MultiqueryInputBatchOperation
+    {
+        public BatchOperationInputQuery[] BatchQueries { get; set; }
+
+        /// <summary>
+        /// Oracle connection string
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
+        public string ConnectionString { get; set; }
+
+    }
+
+    public class BatchOperationInputQuery
+    {
+        /// <summary>
+        /// ExecuteQueryOracle string for batch operation.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Sql")]
+        [DefaultValue("insert into MyTable(ID,NAME) VALUES (:Id, :FirstName)")]
+        public string BatchInputQuery { get; set; }
+
+        /// <summary>
+        /// Input json for batch operation. Needs to be a Json array.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Json")]
+        [DefaultValue("[{\"Id\":15,\"FirstName\":\"Foo\"},{\"Id\":20,\"FirstName\":\"Bar\"}]")]
+        public string InputJson { get; set; }
+    }
+
+
 }

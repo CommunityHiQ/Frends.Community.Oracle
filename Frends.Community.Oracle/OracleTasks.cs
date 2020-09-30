@@ -156,7 +156,7 @@ namespace Frends.Community.Oracle
             [PropertyTab] QueryOptions options,
             CancellationToken cancellationToken)
         {
-         
+
             try
             {
                 using (var c = new OracleConnection(input.ConnectionString))
@@ -176,7 +176,7 @@ namespace Frends.Community.Oracle
                                 case QueryReturnType.Json:
                                     foreach (var query in input.Queries)
                                     {
-                                        var command = new OracleCommand(query, c);
+                                        var command = new OracleCommand(query.InputQueryString, c);
 
                                         if (input.Parameters != null)
                                             command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
@@ -283,11 +283,11 @@ namespace Frends.Community.Oracle
                                     //    break;
 
                                     case QueryReturnType.Json:
-                                        
+
                                         foreach (var query in input.Queries)
                                         {
 
-                                            var command = new OracleCommand(query, c);
+                                            var command = new OracleCommand(query.InputQueryString, c);
 
                                             if (input.Parameters != null)
                                                 command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
@@ -431,6 +431,118 @@ namespace Frends.Community.Oracle
                 if (options.ThrowErrorOnFailure)
                     throw;
                 return new BatchOperationOutput
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Create a query for a batch operation like insert. The query is executed with Dapper ExecuteAsync. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
+        /// </summary>
+        /// <param name="input">Input parameters</param>
+        /// <param name="options"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Object { bool Success, string Message, string Result }</returns>
+        public static async Task<MultiqueryBatchOperationOutput> MultiqueryBatchOperationOracle(
+            [PropertyTab] MultiqueryInputBatchOperation input,
+            [PropertyTab] BatchOptions options,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                using (var c = new OracleConnection(input.ConnectionString))
+                {
+                    try
+                    {
+                        await c.OpenAsync(cancellationToken);
+                        if (options.IsolationLevel == Oracle_IsolationLevel.None)
+                        {
+                            // declare Result object
+                            int queryResult;
+                            JArray queryResults = new JArray();
+
+                            foreach (var query in input.BatchQueries)
+                            {
+                                using (var command = new OracleCommand(query.BatchInputQuery, c))
+                                {
+                                    command.CommandTimeout = options.TimeoutSeconds;
+                                    command.BindByName = true; // is this xmlCommand specific?
+
+                                    var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(query.InputJson,
+                                        new ExpandoObjectConverter());
+                                    queryResult = await c.ExecuteAsync(
+                                            query.BatchInputQuery,
+                                            param: obj,
+                                            commandTimeout: options.TimeoutSeconds,
+                                            commandType: CommandType.Text)
+                                        .ConfigureAwait(false);
+                                    var result = new { queryIndex = Array.IndexOf(input.BatchQueries, query), output = queryResult };
+                                    queryResults.Add(JObject.FromObject(result));
+
+                                }
+                            }
+                            
+                            return new MultiqueryBatchOperationOutput { Success = true, Results = queryResults };
+                        }
+
+                        else
+                        {
+                            OracleTransaction txn =
+                                c.BeginTransaction(options.IsolationLevel.GetTransactionIsolationLevel());
+
+                            //declare queryResult (rowcount)
+                            int queryResult;
+                            JArray queryResults = new JArray();
+
+                            try
+                            {
+                                foreach (var query in input.BatchQueries)
+                                {
+                                    var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(query.InputJson,
+                                        new ExpandoObjectConverter());
+                                    queryResult = await c.ExecuteAsync(
+                                            query.BatchInputQuery,
+                                            param: obj,
+                                            commandTimeout: options.TimeoutSeconds,
+                                            commandType: CommandType.Text,
+                                            transaction: txn)
+                                        .ConfigureAwait(false);
+                                    var result = new { queryIndex = Array.IndexOf(input.BatchQueries, query), output = queryResult };
+                                    queryResults.Add(JObject.FromObject(result));
+
+                                }
+                                txn.Commit();
+                                txn.Dispose();
+                                return new MultiqueryBatchOperationOutput { Success = true, Results = queryResults};
+
+                            }
+                            catch (Exception)
+                            {
+                                txn.Rollback();
+                                txn.Dispose();
+                                throw;
+                            }
+                        }
+
+                    }
+
+                    finally
+                    {
+                        // Close connection
+                        c.Dispose();
+                        c.Close();
+                        OracleConnection.ClearPool(c);
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (options.ThrowErrorOnFailure)
+                    throw;
+                return new MultiqueryBatchOperationOutput
                 {
                     Success = false,
                     Message = ex.Message
