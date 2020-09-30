@@ -16,10 +16,8 @@ namespace Frends.Community.Oracle.Query.Tests
     public class OracleTests
     {
         // Problems with local oracle, tests not implemented yet
-        public string ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)));User Id = SYSTEM; Password=lakWsd6532";
-        //public string ConnectionString = Environment.GetEnvironmentVariable("HIQ_ORACLEDB_CONNECTIONSTRING");
+        public string ConnectionString = Environment.GetEnvironmentVariable("HIQ_ORACLEDB_CONNECTIONSTRING");
         public int TimeoutSeconds = 900;
-
 
         [OneTimeSetUp]
         public async Task OneTimeSetUp()
