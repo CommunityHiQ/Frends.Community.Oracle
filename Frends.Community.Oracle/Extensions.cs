@@ -217,5 +217,79 @@ namespace Frends.Community.Oracle
                 }
             }
         }
+
+        /// <summary>
+        /// Write query results to json string or file
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="queryOutput"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<object> MultiQueryToJsonAsync(this OracleCommand command, QueryOutputProperties queryOutput, CancellationToken cancellationToken)
+        {
+            command.CommandType = CommandType.Text;
+
+
+            using (OracleDataReader reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
+            {
+                var culture = String.IsNullOrWhiteSpace(queryOutput.JsonOutput.CultureInfo) ? CultureInfo.InvariantCulture : new CultureInfo(queryOutput.JsonOutput.CultureInfo);
+
+                // utf-8 as default encoding
+                Encoding encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
+
+                // create json result
+                using (var writer = new JTokenWriter() as JsonWriter)
+                {
+                    writer.Formatting = Newtonsoft.Json.Formatting.Indented;
+                    writer.Culture = culture;
+
+                    // start array
+                    await writer.WriteStartArrayAsync(cancellationToken);
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    while (reader.Read())
+                    {
+                        // start row object
+                        await writer.WriteStartObjectAsync(cancellationToken);
+
+                        for (var i = 0; i < reader.FieldCount; i++)
+                        {
+                            // add row element name
+                            await writer.WritePropertyNameAsync(reader.GetName(i), cancellationToken);
+
+                            // add row element value
+                            switch (reader.GetDataTypeName(i))
+                            {
+                                case "Decimal":
+                                    // FCOM-204 fix; proper handling of decimal values and NULL values in decimal type fields
+                                    OracleDecimal v = reader.GetOracleDecimal(i);
+                                    var FieldValue = OracleDecimal.SetPrecision(v, 28);
+
+                                    if (!FieldValue.IsNull) await writer.WriteValueAsync((decimal)FieldValue, cancellationToken);
+                                    else await writer.WriteValueAsync(string.Empty, cancellationToken);
+                                    break;
+                                default:
+                                    await writer.WriteValueAsync(reader.GetValue(i) ?? string.Empty, cancellationToken);
+                                    break;
+                            }
+
+                            cancellationToken.ThrowIfCancellationRequested();
+                        }
+
+                        await writer.WriteEndObjectAsync(cancellationToken); // end row object
+
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    // end array
+                    await writer.WriteEndArrayAsync(cancellationToken);
+
+                     return ((JTokenWriter)writer).Token;
+                    
+                }
+            }
+        }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using Oracle.ManagedDataAccess.Client;
 using System;
 using System.IO;
@@ -15,7 +16,8 @@ namespace Frends.Community.Oracle.Query.Tests
     public class OracleTests
     {
         // Problems with local oracle, tests not implemented yet
-        public string ConnectionString = Environment.GetEnvironmentVariable("HIQ_ORACLEDB_CONNECTIONSTRING");
+        public string ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)));User Id = SYSTEM; Password=lakWsd6532";
+        //public string ConnectionString = Environment.GetEnvironmentVariable("HIQ_ORACLEDB_CONNECTIONSTRING");
         public int TimeoutSeconds = 900;
 
 
@@ -496,7 +498,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
-            Assert.AreNotEqual("", result.Result);
+            Assert.AreEqual(result.Result.First?["output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
             Assert.AreEqual(true, result.Success);
 
         }
@@ -517,7 +519,7 @@ namespace Frends.Community.Oracle.Query.Tests
             var options = new QueryOptions { ThrowErrorOnFailure = true, IsolationLevel = Oracle_IsolationLevel.Serializable };
 
             MultiQueryOutput result = new MultiQueryOutput();
-         
+
             try
             {
                 result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
@@ -526,7 +528,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             catch (Exception)
             {
-                
+
             }
             var multiQueryProperties2 = new InputMultiQuery { Queries = new string[] { "SELECT * FROM DecimalTest" }, ConnectionString = ConnectionString };
             var outputProperties2 = new QueryOutputProperties
@@ -543,6 +545,33 @@ namespace Frends.Community.Oracle.Query.Tests
             Assert.AreNotEqual(2, result2.Result.Count);
 
         }
+
+        [Test]
+        [Category("Multiquery tests")]
+        public async Task MultiqueryShouldWriteJsonFile()
+        {
+            var multiQueryProperties = new InputMultiQuery { Queries = new string[] { "SELECT * FROM DecimalTest", "SELECT * FROM HodorTest", "INSERT INTO HodorTest values('test', 890)", "DELETE FROM HodorTest WHERE value = 890" }, ConnectionString = ConnectionString };
+            //var multiQueryProperties = new InputMultiQuery { Queries = new string[] { "SELECT * FROM DecimalTest", "SELECT * FROM HodorTest" }, ConnectionString = ConnectionString };
+            var outputProperties = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Json,
+                JsonOutput = new JsonOutputProperties(),
+                OutputToFile = true,
+                OutputFile = new OutputFileProperties
+                {
+                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                }
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
+
+            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+
+            Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
+            Assert.AreEqual(result.Result.First?["output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
+            Assert.AreEqual(result.Result?.Count, 4);
+            //File.Delete(outputProperties.OutputFile.Path);
+        }
+
 
     }
 }
