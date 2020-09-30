@@ -96,8 +96,6 @@ namespace Frends.Community.Oracle
         public OutputFileProperties OutputFile { get; set; }
     }
 
-
-
     public enum Oracle_IsolationLevel { None, ReadCommitted, Serializable }
 
     public class QueryOptions
@@ -198,7 +196,7 @@ namespace Frends.Community.Oracle
     /// <summary>
     /// Result to be returned from task
     /// </summary>
-    public class MultiqueryBatchOperationOutput
+    public class MultiBatchOperationOutput
     {
         public bool Success { get; set; }
         public string Message { get; set; }
@@ -339,9 +337,9 @@ namespace Frends.Community.Oracle
         public string InputQueryString { get; set; }
     }
 
-    public class MultiqueryInputBatchOperation
+    public class InputMultiBatchOperation
     {
-        public BatchOperationInputQuery[] BatchQueries { get; set; }
+        public BatchOperationQuery[] BatchQueries { get; set; }
 
         /// <summary>
         /// Oracle connection string
@@ -352,7 +350,7 @@ namespace Frends.Community.Oracle
 
     }
 
-    public class BatchOperationInputQuery
+    public class BatchOperationQuery
     {
         /// <summary>
         /// ExecuteQueryOracle string for batch operation.

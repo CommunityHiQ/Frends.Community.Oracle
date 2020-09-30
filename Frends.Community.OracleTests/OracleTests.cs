@@ -582,16 +582,16 @@ namespace Frends.Community.Oracle.Query.Tests
 
         [Test]
         [Category("MutiqueryTests")]
-        public async Task MultiqueryBatchOperationInsertTest()
+        public async Task MultiBatchOperationInsertTest()
         {
 
             //t(NR varchar(20), NAM varchar(20))",
-            var inputbatch = new MultiqueryInputBatchOperation
+            var inputbatch = new InputMultiBatchOperation
             {
-                BatchQueries = new BatchOperationInputQuery[] {
-                new BatchOperationInputQuery {BatchInputQuery = @"delete from batch_table_test", InputJson = ""},
-                new BatchOperationInputQuery { BatchInputQuery = @"insert into batch_table_test (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"nannaa2\"},{\"NR\":333, \"NAM\":\"nannaa3\"}, {\"NR\":444, \"NAM\":\"nannaa4\"}]" },
-                new BatchOperationInputQuery { BatchInputQuery = @"insert into batch_table_test (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 555, \"NAM\":\"nannaa1\"},{\"NR\":666, \"NAM\":\"nannaa2\"}]" }
+                BatchQueries = new BatchOperationQuery[] {
+                new BatchOperationQuery {BatchInputQuery = @"delete from batch_table_test", InputJson = ""},
+                new BatchOperationQuery { BatchInputQuery = @"insert into batch_table_test (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"nannaa2\"},{\"NR\":333, \"NAM\":\"nannaa3\"}, {\"NR\":444, \"NAM\":\"nannaa4\"}]" },
+                new BatchOperationQuery { BatchInputQuery = @"insert into batch_table_test (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 555, \"NAM\":\"nannaa1\"},{\"NR\":666, \"NAM\":\"nannaa2\"}]" }
             },
 
                 ConnectionString = ConnectionString
@@ -601,11 +601,11 @@ namespace Frends.Community.Oracle.Query.Tests
             options.ThrowErrorOnFailure = true;
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
 
-            MultiqueryBatchOperationOutput output = new MultiqueryBatchOperationOutput();
+            MultiBatchOperationOutput output = new MultiBatchOperationOutput();
 
             try
             {
-                output = await OracleTasks.MultiqueryBatchOperationOracle(inputbatch, options, new CancellationToken());
+                output = await OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken());
             }
             catch (Exception ee)
             {
@@ -633,15 +633,15 @@ namespace Frends.Community.Oracle.Query.Tests
         /// </summary>
         [Test]
         [Category("MutiqueryTests")]
-        public async Task MultiQueryBatchOpeartionRollback()
+        public async Task MultiBatchOpeartionRollback()
         {
    
-            var inputbatch = new MultiqueryInputBatchOperation
+            var inputbatch = new InputMultiBatchOperation
             {
-                BatchQueries = new BatchOperationInputQuery[] {
-                new BatchOperationInputQuery {BatchInputQuery = @"delete from batch_table_test", InputJson = ""},
-                new BatchOperationInputQuery { BatchInputQuery = @"insert into batch_table_test (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"nannaa2\"},{\"NR\":333, \"NAM\":\"nannaa3\"}, {\"NR\":444, \"NAM\":\"nannaa4\"}]" },
-                new BatchOperationInputQuery { BatchInputQuery = @"insert into batch_table_testfoo (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 555, \"NAM\":\"nannaa1\"},{\"NR\":666, \"NAM\":\"nannaa2\"}]" }
+                BatchQueries = new BatchOperationQuery[] {
+                new BatchOperationQuery {BatchInputQuery = @"delete from batch_table_test", InputJson = ""},
+                new BatchOperationQuery { BatchInputQuery = @"insert into batch_table_test (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"nannaa2\"},{\"NR\":333, \"NAM\":\"nannaa3\"}, {\"NR\":444, \"NAM\":\"nannaa4\"}]" },
+                new BatchOperationQuery { BatchInputQuery = @"insert into batch_table_testfoo (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 555, \"NAM\":\"nannaa1\"},{\"NR\":666, \"NAM\":\"nannaa2\"}]" }
             },
 
                 ConnectionString = ConnectionString
@@ -651,11 +651,11 @@ namespace Frends.Community.Oracle.Query.Tests
             options.ThrowErrorOnFailure = true;
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
 
-            MultiqueryBatchOperationOutput output = new MultiqueryBatchOperationOutput();
+            MultiBatchOperationOutput output = new MultiBatchOperationOutput();
 
             try
             {
-                output = await OracleTasks.MultiqueryBatchOperationOracle(inputbatch, options, new CancellationToken());
+                output = await OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken());
             }
             catch (Exception)
             {
@@ -682,7 +682,7 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
-            Assert.That(() => OracleTasks.MultiqueryBatchOperationOracle(inputbatch, options, new CancellationToken()), Throws.TypeOf<OracleException>());
+            Assert.That(() => OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken()), Throws.TypeOf<OracleException>());
             Assert.AreEqual(false, output.Success);            
             Assert.AreEqual(result_debug.Result, "[\r\n  {\r\n    \"ROWCOUNT\": 4.0\r\n  }\r\n]");
 

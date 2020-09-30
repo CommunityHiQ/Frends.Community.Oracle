@@ -445,8 +445,8 @@ namespace Frends.Community.Oracle
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Object { bool Success, string Message, string Result }</returns>
-        public static async Task<MultiqueryBatchOperationOutput> MultiqueryBatchOperationOracle(
-            [PropertyTab] MultiqueryInputBatchOperation input,
+        public static async Task<MultiBatchOperationOutput> MultiBatchOperationOracle(
+            [PropertyTab] InputMultiBatchOperation input,
             [PropertyTab] BatchOptions options,
             CancellationToken cancellationToken)
         {
@@ -484,7 +484,7 @@ namespace Frends.Community.Oracle
                                 }
                             }
                             
-                            return new MultiqueryBatchOperationOutput { Success = true, Results = queryResults };
+                            return new MultiBatchOperationOutput { Success = true, Results = queryResults };
                         }
 
                         else
@@ -515,7 +515,7 @@ namespace Frends.Community.Oracle
                                 }
                                 txn.Commit();
                                 txn.Dispose();
-                                return new MultiqueryBatchOperationOutput { Success = true, Results = queryResults};
+                                return new MultiBatchOperationOutput { Success = true, Results = queryResults};
 
                             }
                             catch (Exception)
@@ -542,7 +542,7 @@ namespace Frends.Community.Oracle
             {
                 if (options.ThrowErrorOnFailure)
                     throw;
-                return new MultiqueryBatchOperationOutput
+                return new MultiBatchOperationOutput
                 {
                     Success = false,
                     Message = ex.Message
