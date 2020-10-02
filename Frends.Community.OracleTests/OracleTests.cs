@@ -462,7 +462,7 @@ namespace Frends.Community.Oracle.Query.Tests
         /// Two simple select querys to the database
         /// </summary>
         [Test]
-        [Category("MutiqueryTests")]
+        [Category("MultiqueryTests")]
         public async Task MultiQueryJSON()
         {
             var multiQueryProperties = new InputMultiQuery { Queries = new InputQuery[] { new InputQuery { InputQueryString = "SELECT * FROM DecimalTest" }, new InputQuery { InputQueryString = "SELECT * FROM HodorTest" } }, ConnectionString = ConnectionString };
@@ -483,7 +483,7 @@ namespace Frends.Community.Oracle.Query.Tests
         /// Two simple select querys to the db with isolationlevel = serializable
         /// </summary>
         [Test]
-        [Category("MutiqueryTests")]
+        [Category("MultiqueryTests")]
         public async Task MultiQueryJSONIsolation()
         {
             var multiQueryProperties = new InputMultiQuery
@@ -511,7 +511,7 @@ namespace Frends.Community.Oracle.Query.Tests
         /// Check if corrupted query is rolled back
         /// </summary>
         [Test]
-        [Category("MutiqueryTests")]
+        [Category("MultiqueryTests")]
         public async Task MultiQuerRollback()
         {
             var multiQueryProperties = new InputMultiQuery { Queries = new InputQuery[] { new InputQuery { InputQueryString = "insert into DecimalTest(DecimalValue) values(10.6)" }, new InputQuery { InputQueryString = "SELECT * FROM foo" } }, ConnectionString = ConnectionString };
@@ -551,7 +551,7 @@ namespace Frends.Community.Oracle.Query.Tests
         }
 
         [Test]
-        [Category("MutiqueryTests")]
+        [Category("MultiqueryTests")]
         public async Task MultiqueryShouldWriteJsonFile()
         {
             var multiQueryProperties = new InputMultiQuery
@@ -581,7 +581,7 @@ namespace Frends.Community.Oracle.Query.Tests
         }
 
         [Test]
-        [Category("MutiqueryTests")]
+        [Category("MultiqueryTests")]
         public async Task MultiBatchOperationInsertTest()
         {
 
@@ -632,7 +632,7 @@ namespace Frends.Community.Oracle.Query.Tests
         /// Check if corrupted query is rolled back
         /// </summary>
         [Test]
-        [Category("MutiqueryTests")]
+        [Category("MultiqueryTests")]
         public async Task MultiBatchOpeartionRollback()
         {
    
