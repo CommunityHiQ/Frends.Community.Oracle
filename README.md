@@ -182,7 +182,7 @@ Execute multiple queries and operations in one transaction.
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
-| Isolation Level| enum<> | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  None, Serializable and ReadCommitted. | None |
+| Isolation Level| enum<None, ReadCommitted, Serializable> | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  None, Serializable and ReadCommitted. | None |
 | Timeout seconds | int | Query timeout in seconds | `60` |
 | Enable detaild logging | bool | If true, enables setting additional tracing. If false tracing level is set to default value is 0 indicating tracing is disabled. However, errors will always be traced. | `false` |
 | Trace level | int | Valid Values: 1 = public APIs, 2 = private APIs, 4 = network APIs/data More information https://docs.oracle.com/en/database/oracle/oracle-data-access-components/18.3/odpnt/ConfigurationTraceLevel.html#GUID-E4A2B13E-E0AC-4E79-BCD9-51C4DBBBFEA5 | `60` |
