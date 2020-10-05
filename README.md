@@ -5,7 +5,9 @@ FRENDS Task for querying data from Oracle database
 - [Installing](#installing)
 - [Task](#tasks)
 	- [ExecuteQueryOracle](#ExecuteQueryOracle)
-	- [BatchOperation](#batchoperation)
+	- [BatchOperation](#BatchOperationOracle)
+	- [TransactionalMultiQuery](#TransactionalMultiQuery)
+	- [MultiBatchOperationOracle](#MultiBatchOperationOracle)
 - [Building](#building)
 - [Contributing](#contributing)
 - [Change Log](#change-log)
@@ -23,10 +25,10 @@ Executes query against Oracle database.
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Query | string | The query to execute | `SELECT * FROM Table WHERE field = :paramName`|
-| Parameters | array[Query Parameter] | Possible query parameters. See [Query Parameter](#query-parameter) |  |
+| Parameters | array[Query Parameter] | Possible query parameters. See [Query Parameters Properties](#Query Parameters Properties) |  |
 | Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
 
-#### Parameters Properties
+#### Query Parameters Properties
 
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
@@ -128,7 +130,7 @@ Create a query for a batch operation like insert. The query is executed with Dap
 ### Input
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Query | string | The query to execute | `insert into MyTable(ID,NAME) VALUES (@Id, @FirstName)`|
+| Query | string | The query to execute | `INSERT INTO MyTable(ID,NAME) VALUES (:Id, :FirstName)`|
 | InputJson | string |A Json Array of objects that has their properties mapped to the parameters in the Query|[{"Id":10, "FirstName": "Foo"},{"Id":15, "FirstName": "Bar"}]  |
 | Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
 
@@ -143,6 +145,132 @@ Create a query for a batch operation like insert. The query is executed with Dap
 
 #### Result
 Integer - Number of affected rows
+
+## TransactionalMultiQuery
+
+Execute multiple queries within a transaction.
+
+### Query input Properties
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Query | array[Query] | The queries to execute |  |
+| Parameters | array[Query Parameter] | Possible query parameters. |  |
+| Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
+
+#### Query Parameters Properties
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Name | string | Parameter name used in Query property | `username` |
+| Value | string | Parameter value | `myUser` |
+| Data type | enum<> | Parameter data type | `NVarchar2` |
+
+### Query Output Properties
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Return type | array[enum<Json, Xml, Csv>] | Data return type format | Array[`Json`] |
+| OutputToFile | bool | true to write results to a file, false to return results to executin process | `true` |
+
+#### Xml Output
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Root element name | string | Xml root element name | `items` |
+| Row element name |string | Xml row element name | `item` |
+| Maximum rows | int | The maximum amount of rows to return; defaults to -1 eg. no limit | `1000` |
+| Output to file | boolean | If true, write output to file, instead returning it. | `true` |
+| Path | boolean | Path where file is written. | `c:\temp\queryOutput.xml` |
+| Encoding | boolean | Set encoding of file. | `utf-8` |
+
+
+#### Json Output
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Culture info | string | Specify the culture info to be used when parsing result to JSON. If this is left empty InvariantCulture will be used. [List of cultures](https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx) Use the Language Culture Name. | `fi-FI` |
+| Output to file | boolean | If true, write output to file, instead returning it. | `true` |
+| Path | boolean | Path where file is written. | `c:\temp\queryOutput.xml` |
+| Encoding | boolean | Set encoding of file. | `utf-8` |
+
+
+#### Csv Output
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Include headers | bool | Include field names in the first row | `true` |
+| Csv separator | string | Csv separator to use in headers and data items | `;` |
+| Output to file | boolean | If true, write output to file, instead returning it. | `true` |
+| Path | boolean | Path where file is written. | `c:\temp\queryOutput.xml` |
+| Encoding | boolean | Set encoding of file. | `utf-8` |
+
+
+#### Output File
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Path | string | Output path with file name | `c:\temp\output.json` |
+| Encoding | string | Encoding to use for the output file | `utf-8` |
+
+### Query Options
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
+| Isolation Level| enum<> | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  None, Serializable and ReadCommitted. | None |
+| Timeout seconds | int | Query timeout in seconds | `60` |
+| Enable detaild logging | bool | If true, enables setting additional tracing. If false tracing level is set to default value is 0 indicating tracing is disabled. However, errors will always be traced. | `false` |
+| Trace level | int | Valid Values: 1 = public APIs, 2 = private APIs, 4 = network APIs/data More information https://docs.oracle.com/en/database/oracle/oracle-data-access-components/18.3/odpnt/ConfigurationTraceLevel.html#GUID-E4A2B13E-E0AC-4E79-BCD9-51C4DBBBFEA5 | `60` |
+| Trace file location | string | Destination directory for trace files. Can not be left empty. | `%TEMP%\ODP.NET\core\trace` |
+
+
+
+### Result
+
+Object { bool Success, string Message, JArray Result }
+
+If output type is file, then _Result_ indicates the written file path. Otherwise it will hold the query output in xml, json or csv.
+
+Example result with return type JSON when SELECT and UPDATE have been executed.
+
+*Success:* ``` True ```
+*Message:* ``` null ```
+*Result:* 
+```
+[
+  {
+    "QueryIndex": 0,
+    "Output": [
+      {
+        "DECIMALVALUE": 1.123456789123456789123456789
+      }
+    ]
+  },
+  {
+    "QueryIndex": 1,
+    "Output": [
+      {
+        "NAME": "hodor",
+        "VALUE": 123
+      },
+      {
+        "NAME": "jon",
+        "VALUE": 321
+      }
+    ]
+  },
+  {
+    "QueryIndex": 2,
+    "Output": []
+  },
+  {
+    "QueryIndex": 3,
+    "Output": []
+  }
+]
+```
+
+To access query result, use 
+```
+#result.Result
+```
+
+## MultiBatchOperationOracle
 
 # Building
 
