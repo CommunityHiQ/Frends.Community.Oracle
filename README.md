@@ -101,7 +101,7 @@ Example result with return type JSON
 
 *Success:* ``` True ```
 *Message:* ``` null ```
-*Result:* 
+*Results:* 
 ```
 [ 
  {
@@ -120,7 +120,7 @@ Example result with return type JSON
 
 To access query result, use 
 ```
-#result.Result
+#result.Results
 ```
 
 ## BatchOperationOracle
@@ -237,7 +237,7 @@ Example result with return type JSON when SELECT, SELECT, INSERT and DELETE have
 
 To access query result, use 
 ```
-#result.Result
+#result.Results
 ```
 
 ## MultiBatchOperationOracle
