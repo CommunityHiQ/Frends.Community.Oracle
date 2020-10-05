@@ -168,38 +168,8 @@ Execute multiple queries and operations in one transaction.
 ### Query Output Properties
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Return type | array[enum<Json, Xml, Csv>] | Data return type format | Array[`Json`] |
+| Return type | array[enum<[Json](#json-output), [Xml](#xml-output), [Csv](#csv-output)>] | Data return type format | Array[`Json`] |
 | OutputToFile | bool | true to write results to a file, false to return results to executin process | `true` |
-
-#### Xml Output
-| Property    | Type       | Description     | Example |
-| ------------| -----------| --------------- | ------- |
-| Root element name | string | Xml root element name | `items` |
-| Row element name |string | Xml row element name | `item` |
-| Maximum rows | int | The maximum amount of rows to return; defaults to -1 eg. no limit | `1000` |
-| Output to file | boolean | If true, write output to file, instead returning it. | `true` |
-| Path | boolean | Path where file is written. | `c:\temp\queryOutput.xml` |
-| Encoding | boolean | Set encoding of file. | `utf-8` |
-
-
-#### Json Output
-| Property    | Type       | Description     | Example |
-| ------------| -----------| --------------- | ------- |
-| Culture info | string | Specify the culture info to be used when parsing result to JSON. If this is left empty InvariantCulture will be used. [List of cultures](https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx) Use the Language Culture Name. | `fi-FI` |
-| Output to file | boolean | If true, write output to file, instead returning it. | `true` |
-| Path | boolean | Path where file is written. | `c:\temp\queryOutput.xml` |
-| Encoding | boolean | Set encoding of file. | `utf-8` |
-
-
-#### Csv Output
-| Property    | Type       | Description     | Example |
-| ------------| -----------| --------------- | ------- |
-| Include headers | bool | Include field names in the first row | `true` |
-| Csv separator | string | Csv separator to use in headers and data items | `;` |
-| Output to file | boolean | If true, write output to file, instead returning it. | `true` |
-| Path | boolean | Path where file is written. | `c:\temp\queryOutput.xml` |
-| Encoding | boolean | Set encoding of file. | `utf-8` |
-
 
 #### Output File
 | Property    | Type       | Description     | Example |
