@@ -496,13 +496,19 @@ namespace Frends.Community.Oracle.Query.Tests
             var outputProperties = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Json,
-                JsonOutput = new JsonOutputProperties()
+                JsonOutput = new JsonOutputProperties(),
+                OutputToFile = true,
+                OutputFile = new OutputFileProperties
+                {
+                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                }
+
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true, IsolationLevel = Oracle_IsolationLevel.Serializable };
 
             MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
-            Assert.AreEqual(result.Result.First?["output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
+            Assert.AreEqual(result.Result.First?["Output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
             Assert.AreEqual(true, result.Success);
 
         }
@@ -518,7 +524,12 @@ namespace Frends.Community.Oracle.Query.Tests
             var outputProperties = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Json,
-                JsonOutput = new JsonOutputProperties()
+                JsonOutput = new JsonOutputProperties(),
+                OutputToFile = true,
+                OutputFile = new OutputFileProperties
+                {
+                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                }
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true, IsolationLevel = Oracle_IsolationLevel.Serializable };
 
@@ -575,9 +586,77 @@ namespace Frends.Community.Oracle.Query.Tests
             MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
-            Assert.AreEqual(result.Result.First?["output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
+            Assert.AreEqual(result.Result.First?["Output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
             Assert.AreEqual(result.Result?.Count, 4);
-            File.Delete(outputProperties.OutputFile.Path);
+            //File.Delete(outputProperties.OutputFile.Path);
+        }
+
+        [Test]
+        [Category("MultiqueryTests")]
+        public async Task MultiqueryShouldWriteCSVFile()
+        {
+            var multiQueryProperties = new InputMultiQuery
+            {
+                Queries = new InputQuery[] { new InputQuery { InputQueryString = "SELECT * FROM DecimalTest" }, new InputQuery { InputQueryString = "SELECT * FROM HodorTest" },
+                new InputQuery { InputQueryString = "INSERT INTO HodorTest values('test', 890)" }, new InputQuery { InputQueryString = "DELETE FROM HodorTest WHERE value = 890" } },
+                ConnectionString = ConnectionString
+            };
+            var outputProperties = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Csv,
+                CsvOutput = new CsvOutputProperties
+                {
+                    CsvSeparator = ";",
+                    IncludeHeaders = true
+                },
+                OutputToFile = true,
+                OutputFile = new OutputFileProperties
+                {
+                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                }
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
+
+            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+
+            Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
+            Assert.AreEqual(result.Result.First?["Output"]?.ToString(), "DECIMALVALUE\r\n1.123456789123456789123456789\r\n");
+            Assert.AreEqual(result.Result?.Count, 4);
+            //File.Delete(outputProperties.OutputFile.Path);
+        }
+
+        [Test]
+        [Category("MultiqueryTests")]
+        public async Task MultiqueryShouldWriteXMLFile()
+        {
+            var multiQueryProperties = new InputMultiQuery
+            {
+                Queries = new InputQuery[] { new InputQuery { InputQueryString = "SELECT * FROM DecimalTest" }, new InputQuery { InputQueryString = "SELECT * FROM HodorTest" },
+                new InputQuery { InputQueryString = "INSERT INTO HodorTest values('test', 890)" }, new InputQuery { InputQueryString = "DELETE FROM HodorTest WHERE value = 890" } },
+                ConnectionString = ConnectionString
+            };
+            var outputProperties = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Xml,
+                OutputToFile = true,
+                XmlOutput = new XmlOutputProperties
+                {
+                    RootElementName = "items",
+                    RowElementName = "item"
+                },
+                OutputFile = new OutputFileProperties
+                {
+                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                }
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
+
+            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+
+            Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
+            Assert.AreEqual(result.Result.First?["Output"]?.ToString(), "<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<items>\r\n  <item>\r\n    <DECIMALVALUE>1.12345678912345678912345678912345678</DECIMALVALUE>\r\n  </item>\r\n</items>");
+            Assert.AreEqual(result.Result?.Count, 4);
+            //File.Delete(outputProperties.OutputFile.Path);
         }
 
         [Test]
@@ -633,7 +712,7 @@ namespace Frends.Community.Oracle.Query.Tests
         [Category("MultiqueryTests")]
         public async Task MultiBatchOpeartionRollback()
         {
-   
+
             var inputbatch = new InputMultiBatchOperation
             {
                 BatchQueries = new BatchOperationQuery[] {
@@ -681,7 +760,7 @@ namespace Frends.Community.Oracle.Query.Tests
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
             Assert.That(() => OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken()), Throws.TypeOf<OracleException>());
-            Assert.AreEqual(false, output.Success);            
+            Assert.AreEqual(false, output.Success);
             Assert.AreEqual(result_debug.Result, "[\r\n  {\r\n    \"ROWCOUNT\": 4.0\r\n  }\r\n]");
 
         }
