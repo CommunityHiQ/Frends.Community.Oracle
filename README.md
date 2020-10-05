@@ -25,7 +25,7 @@ Executes query against Oracle database.
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Query | string | The query to execute | `SELECT * FROM Table WHERE field = :paramName`|
-| Parameters | array[Query Parameter] | Possible query parameters. See [Query Parameters Properties](#Query Parameters Properties) |  |
+| Parameters | array[Query Parameter] | Possible query parameters. See [Query Parameters Properties](#query-parameters-properties) |  |
 | Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
 
 #### Query Parameters Properties
