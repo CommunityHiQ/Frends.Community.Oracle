@@ -577,15 +577,13 @@ namespace Frends.Community.Oracle.Query.Tests
             Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
             Assert.AreEqual(result.Result.First?["output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
             Assert.AreEqual(result.Result?.Count, 4);
-            //File.Delete(outputProperties.OutputFile.Path);
+            File.Delete(outputProperties.OutputFile.Path);
         }
 
         [Test]
         [Category("MultiqueryTests")]
         public async Task MultiBatchOperationInsertTest()
         {
-
-            //t(NR varchar(20), NAM varchar(20))",
             var inputbatch = new InputMultiBatchOperation
             {
                 BatchQueries = new BatchOperationQuery[] {

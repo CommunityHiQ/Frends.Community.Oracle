@@ -199,39 +199,39 @@ namespace Frends.Community.Oracle
                                     }
                                     break;
 
-                                //case QueryReturnType.Xml:
+                                case QueryReturnType.Xml:
 
-                                //    foreach (var query in input.Queries)
-                                //    {
-                                //        var command = new OracleCommand(query, c);
+                                    foreach (var query in input.Queries)
+                                    {
+                                        var command = new OracleCommand(query.InputQueryString, c);
 
-                                //        if (input.Parameters != null)
-                                //            command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
+                                        if (input.Parameters != null)
+                                            command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
 
-                                //        command.CommandTimeout = options.TimeoutSeconds;
-                                //        command.BindByName = true;
-                                //        queryResult = await command.ToXmlAsync(output, cancellationToken);
-                                //        var result = new { queryIndex = Array.IndexOf(input.Queries, query), output = queryResult };
-                                //        queryResults.Add(JObject.FromObject(result));
-                                //    }
-                                //    break;
+                                        command.CommandTimeout = options.TimeoutSeconds;
+                                        command.BindByName = true;
+                                        queryResult = await command.ToXmlAsync(output, cancellationToken);
+                                        var result = new { queryIndex = Array.IndexOf(input.Queries, query), output = queryResult };
+                                        queryResults.Add(JObject.FromObject(result));
+                                    }
+                                    break;
 
-                                //case QueryReturnType.Csv:
+                                case QueryReturnType.Csv:
 
-                                //    foreach (var query in input.Queries)
-                                //    {
-                                //        var command = new OracleCommand(query, c);
+                                    foreach (var query in input.Queries)
+                                    {
+                                        var command = new OracleCommand(query.InputQueryString, c);
 
-                                //        if (input.Parameters != null)
-                                //            command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
+                                        if (input.Parameters != null)
+                                            command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
 
-                                //        command.CommandTimeout = options.TimeoutSeconds;
-                                //        command.BindByName = true;
-                                //        queryResult = await command.ToCsvAsync(output, cancellationToken);
-                                //        var result = new { queryIndex = Array.IndexOf(input.Queries, query), output = queryResult };
-                                //        queryResults.Add(JObject.FromObject(result));
-                                //    }
-                                //    break;
+                                        command.CommandTimeout = options.TimeoutSeconds;
+                                        command.BindByName = true;
+                                        queryResult = await command.ToCsvAsync(output, cancellationToken);
+                                        var result = new { queryIndex = Array.IndexOf(input.Queries, query), output = queryResult };
+                                        queryResults.Add(JObject.FromObject(result));
+                                    }
+                                    break;
 
                                 default:
                                     throw new ArgumentException("Task 'Return Type' was invalid! Check task properties.");
@@ -251,7 +251,7 @@ namespace Frends.Community.Oracle
                                     //case QueryReturnType.Xml:
                                     //    foreach (var query in input.Queries)
                                     //    {
-                                    //        var command = new OracleCommand(query, c);
+                                    //        var command = new OracleCommand(query.InputQueryString, c);
 
                                     //        if (input.Parameters != null)
                                     //            command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
@@ -268,7 +268,7 @@ namespace Frends.Community.Oracle
                                     //case QueryReturnType.Csv:
                                     //    foreach (var query in input.Queries)
                                     //    {
-                                    //        var command = new OracleCommand(query, c);
+                                    //        var command = new OracleCommand(query.InputQueryString, c);
 
                                     //        if (input.Parameters != null)
                                     //            command.Parameters.AddRange(input.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
@@ -483,7 +483,7 @@ namespace Frends.Community.Oracle
 
                                 }
                             }
-                            
+
                             return new MultiBatchOperationOutput { Success = true, Results = queryResults };
                         }
 
@@ -515,7 +515,7 @@ namespace Frends.Community.Oracle
                                 }
                                 txn.Commit();
                                 txn.Dispose();
-                                return new MultiBatchOperationOutput { Success = true, Results = queryResults};
+                                return new MultiBatchOperationOutput { Success = true, Results = queryResults };
 
                             }
                             catch (Exception)
