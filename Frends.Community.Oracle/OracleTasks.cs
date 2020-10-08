@@ -493,7 +493,7 @@ namespace Frends.Community.Oracle
                                             commandTimeout: options.TimeoutSeconds,
                                             commandType: CommandType.Text)
                                         .ConfigureAwait(false);
-                                    var result = new { QueryIndex = Array.IndexOf(input.BatchQueries, query), Output = queryResult };
+                                    var result = new { QueryIndex = Array.IndexOf(input.BatchQueries, query), RowCount = queryResult };
                                     queryResults.Add(JObject.FromObject(result));
 
                                 }
