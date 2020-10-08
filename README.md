@@ -325,4 +325,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 2.0.0 | Breaking changes: target .netstandard, more user friendly task settings, csv output, all output types are now possibly to stream directly into a file |
 | 2.0.6 | Enabled detailed logging. |
 | 3.0.0 | Query ranamed and namespace changed to more generic to enable adding new task. Added BatchOperationOracle task. |
-| x.x.x | Multiquery tasks added |
+| 3.1.0 | Multiquery tasks added |

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
     <Company>HiQ Finland</Company>
-    <Description>Task for performing oracle queries</Description>
+    <Description>Tasks for performing queries to Oracle database</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <copyright>HiQ Finland</copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -11,7 +11,7 @@
     <IncludeSource>true</IncludeSource>
     <PackageTags>Frends</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>2.0.13</Version>
+    <Version>3.1.0</Version>
 
   </PropertyGroup>
 
