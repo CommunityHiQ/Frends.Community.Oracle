@@ -147,7 +147,7 @@ namespace Frends.Community.Oracle
         /// <param name="output"></param>
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Object { bool Success, string Message, JArray Result [{QueryIndex, Output}]}</returns>
+        /// <returns>Object { bool Success, string Message, JArray Results}</returns>
         ///
 
         public static async Task<MultiQueryOutput> TransactionalMultiQuery(
@@ -236,9 +236,9 @@ namespace Frends.Community.Oracle
                                     queryResults.WriteTo(writer);
                                 }
 
-                                //Should return only output file path?
-                                //queryResults.Clear();
-                                //queryResults.Add(JObject.FromObject( new { outputPath = output.OutputFile.ToString() }));
+                                //Return output file path, not query results 
+                                queryResults.Clear();
+                                queryResults.Add(JObject.FromObject(new { OutputPath = output.OutputFile.Path.ToString() }));
                             }
 
                             return new MultiQueryOutput { Success = true, Results = queryResults };
@@ -327,9 +327,9 @@ namespace Frends.Community.Oracle
                                     queryResults.WriteTo(writer);
                                 }
 
-                                //Should return only output file path?
-                                //queryResults.Clear();
-                                //queryResults.Add(JObject.FromObject( new { outputPath = output.OutputFile.ToString() }));
+                                //Return output file path, not query results
+                                queryResults.Clear();
+                                queryResults.Add(JObject.FromObject(new { OutputPath = output.OutputFile.Path.ToString() }));
                             }
 
                             return new MultiQueryOutput { Success = true, Results = queryResults };
@@ -459,7 +459,7 @@ namespace Frends.Community.Oracle
         /// <param name="input">Input parameters</param>
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Object { bool Success, string Message, JArray Results[{QueryIndex, Output}] }</returns>
+        /// <returns>Object { bool Success, string Message, JArray Results}</returns>
         public static async Task<MultiBatchOperationOutput> MultiBatchOperationOracle(
             [PropertyTab] InputMultiBatchOperation input,
             [PropertyTab] BatchOptions options,

@@ -10,7 +10,6 @@ FRENDS Task for querying data from Oracle database
 	- [BatchOperation](#BatchOperationOracle)
 	- [TransactionalMultiQuery](#TransactionalMultiQuery)
 	- [MultiBatchOperationOracle](#MultiBatchOperationOracle)
-	- [BatchOperation](#batchoperation)
 - [Known issues](#known-issues)
 - [Building](#building)
 - [Contributing](#contributing)
@@ -337,4 +336,3 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 2.0.6 | Enabled detailed logging. |
 | 3.0.0 | Query ranamed and namespace changed to more generic to enable adding new task. Added BatchOperationOracle task. |
 | 3.1.0 | Multiquery tasks added |
-| 3.0.0 | Query ranamed and namespace changed to more generic to enable adding new task. Added BatchOperationOracle task.
