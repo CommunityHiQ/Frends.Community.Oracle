@@ -81,7 +81,7 @@ namespace Frends.Community.Oracle
                             }
                             else
                             {
-                                OracleTransaction txn = c.BeginTransaction(queryOptions.IsolationLevel.GetTransactionIsolationLevel()); ;
+                                OracleTransaction txn = c.BeginTransaction(queryOptions.IsolationLevel.GetTransactionIsolationLevel());
 
                                 try
                                 {
@@ -130,7 +130,7 @@ namespace Frends.Community.Oracle
             catch (Exception ex)
             {
                 if (queryOptions.ThrowErrorOnFailure)
-                    throw ex;
+                    throw;
                 return new Output
                 {
                     Success = false,
@@ -141,13 +141,13 @@ namespace Frends.Community.Oracle
 
 
         /// <summary>
-        /// Task to execute multiple queries with the same options
+        /// Task to execute multiple queries in Oracle database. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
         /// </summary>
         /// <param name="input"></param>
         /// <param name="output"></param>
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <returns>Object { bool Success, string Message, JArray Result [{QueryIndex, Output}]}</returns>
         ///
 
         public static async Task<MultiQueryOutput> TransactionalMultiQuery(
@@ -241,7 +241,7 @@ namespace Frends.Community.Oracle
                                 //queryResults.Add(JObject.FromObject( new { outputPath = output.OutputFile.ToString() }));
                             }
 
-                            return new MultiQueryOutput { Success = true, Result = queryResults };
+                            return new MultiQueryOutput { Success = true, Results = queryResults };
                         }
                         else
                         {
@@ -332,7 +332,7 @@ namespace Frends.Community.Oracle
                                 //queryResults.Add(JObject.FromObject( new { outputPath = output.OutputFile.ToString() }));
                             }
 
-                            return new MultiQueryOutput { Success = true, Result = queryResults };
+                            return new MultiQueryOutput { Success = true, Results = queryResults };
                         }
 
                     }
@@ -349,7 +349,7 @@ namespace Frends.Community.Oracle
             catch (Exception ex)
             {
                 if (options.ThrowErrorOnFailure)
-                    throw ex;
+                    throw ;
                 return new MultiQueryOutput
                 {
                     Success = false,
@@ -454,12 +454,12 @@ namespace Frends.Community.Oracle
         }
 
         /// <summary>
-        /// Create a query for a batch operation like insert. The query is executed with Dapper ExecuteAsync. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
+        /// Create multiple queries for batch operations like insert. Queries are executed with Dapper ExecuteAsync. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
         /// </summary>
         /// <param name="input">Input parameters</param>
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Object { bool Success, string Message, string Result }</returns>
+        /// <returns>Object { bool Success, string Message, JArray Results[{QueryIndex, Output}] }</returns>
         public static async Task<MultiBatchOperationOutput> MultiBatchOperationOracle(
             [PropertyTab] InputMultiBatchOperation input,
             [PropertyTab] BatchOptions options,

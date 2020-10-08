@@ -180,7 +180,7 @@ namespace Frends.Community.Oracle
     {
         public bool Success { get; set; }
         public string Message { get; set; }
-        public JArray Result { get; set; }
+        public JArray Results { get; set; }
     }
 
     /// <summary>

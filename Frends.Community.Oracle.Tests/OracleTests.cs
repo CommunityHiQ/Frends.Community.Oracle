@@ -475,7 +475,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
-            Assert.AreNotEqual("", result.Result);
+            Assert.AreNotEqual("", result.Results);
             Assert.AreEqual(true, result.Success);
         }
 
@@ -508,7 +508,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
-            Assert.AreEqual(result.Result.First?["Output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
+            Assert.AreEqual(result.Results.First?["Output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
             Assert.AreEqual(true, result.Success);
             File.Delete(outputProperties.OutputFile.Path);
 
@@ -558,7 +558,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             Assert.That(() => OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken()), Throws.TypeOf<OracleException>());
             Assert.AreEqual(false, result.Success);
-            Assert.AreNotEqual(2, result2.Result.Count);
+            Assert.AreNotEqual(2, result2.Results.Count);
 
             File.Delete(outputProperties.OutputFile.Path);
 
@@ -589,8 +589,8 @@ namespace Frends.Community.Oracle.Query.Tests
             MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
-            Assert.AreEqual(result.Result.First?["Output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
-            Assert.AreEqual(result.Result?.Count, 4);
+            Assert.AreEqual(result.Results.First?["Output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
+            Assert.AreEqual(result.Results?.Count, 4);
             File.Delete(outputProperties.OutputFile.Path);
         }
 
@@ -623,8 +623,8 @@ namespace Frends.Community.Oracle.Query.Tests
             MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
-            Assert.AreEqual(result.Result.First?["Output"]?.ToString(), "DECIMALVALUE\r\n1.123456789123456789123456789\r\n");
-            Assert.AreEqual(result.Result?.Count, 4);
+            Assert.AreEqual(result.Results.First?["Output"]?.ToString(), "DECIMALVALUE\r\n1.123456789123456789123456789\r\n");
+            Assert.AreEqual(result.Results?.Count, 4);
             File.Delete(outputProperties.OutputFile.Path);
         }
 
@@ -657,8 +657,8 @@ namespace Frends.Community.Oracle.Query.Tests
             MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
-            Assert.AreEqual(result.Result.First?["Output"]?.ToString(), "<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<items>\r\n  <item>\r\n    <DECIMALVALUE>1.12345678912345678912345678912345678</DECIMALVALUE>\r\n  </item>\r\n</items>");
-            Assert.AreEqual(result.Result?.Count, 4);
+            Assert.AreEqual(result.Results.First?["Output"]?.ToString(), "<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<items>\r\n  <item>\r\n    <DECIMALVALUE>1.12345678912345678912345678912345678</DECIMALVALUE>\r\n  </item>\r\n</items>");
+            Assert.AreEqual(result.Results?.Count, 4);
             File.Delete(outputProperties.OutputFile.Path);
         }
 

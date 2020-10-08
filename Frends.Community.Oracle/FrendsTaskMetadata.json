@@ -10,7 +10,7 @@
       "TaskMethod": "Frends.Community.Oracle.OracleTasks.TransactionalMultiQuery"
     },
     {
-      "TaskMethod": "Frends.Community.Oracle.OracleTasks.MultiBatchOperationOracle"
+      "TaskMethod": "MultiBatchOperationOracle"
     }
   ]
 }
