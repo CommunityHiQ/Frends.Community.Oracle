@@ -3,8 +3,14 @@
     {
       "TaskMethod": "Frends.Community.Oracle.OracleTasks.ExecuteQueryOracle"
     },
-	{
+    {
       "TaskMethod": "Frends.Community.Oracle.OracleTasks.BatchOperationOracle"
+    },
+    {
+      "TaskMethod": "Frends.Community.Oracle.OracleTasks.TransactionalMultiQuery"
+    },
+    {
+      "TaskMethod": "Frends.Community.Oracle.OracleTasks.MultiBatchOperationOracle"
     }
   ]
 }
