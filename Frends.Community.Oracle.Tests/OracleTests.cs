@@ -1,5 +1,7 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using Oracle.ManagedDataAccess.Client;
+using Oracle.ManagedDataAccess.Types;
 using System;
 using System.IO;
 using System.Threading;
@@ -17,7 +19,6 @@ namespace Frends.Community.Oracle.Query.Tests
         // Problems with local oracle, tests not implemented yet
         public string ConnectionString = Environment.GetEnvironmentVariable("HIQ_ORACLEDB_CONNECTIONSTRING");
         public int TimeoutSeconds = 900;
-
 
         [OneTimeSetUp]
         public async Task OneTimeSetUp()
@@ -79,8 +80,6 @@ namespace Frends.Community.Oracle.Query.Tests
                     await command.ExecuteNonQueryAsync();
                 }
 
-
-
             }
         }
 
@@ -131,7 +130,7 @@ namespace Frends.Community.Oracle.Query.Tests
         [Category("Xml tests")]
         public async Task ShouldReturnXmlString()
         {
-            var q = new QueryProperties { Query = @"select * from HodorTest" , ConnectionString = ConnectionString};
+            var q = new QueryProperties { Query = @"select * from HodorTest", ConnectionString = ConnectionString };
             var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Xml,
@@ -364,11 +363,11 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task RollBackTest_1()
         {
             var q = new QueryProperties { Query = @"
-BEGIN
-insert into duplicate_inserttest_table (po_nr)values ('1');
-insert into duplicate_inserttest_table2 (po_nr)values ('2');
-insert into duplicate_inserttest_table2 (po_nr)values ('2');
-END;", ConnectionString = ConnectionString };
+                BEGIN
+                insert into duplicate_inserttest_table (po_nr)values ('1');
+                insert into duplicate_inserttest_table2 (po_nr)values ('2');
+                insert into duplicate_inserttest_table2 (po_nr)values ('2');
+                END;", ConnectionString = ConnectionString };
 
             var o = new QueryOutputProperties
             {
@@ -390,16 +389,16 @@ END;", ConnectionString = ConnectionString };
 
             try
             {
-                 result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
+                result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
             }
             catch (Exception ee)
-             {
+            {
 
                 ex_string = ee.ToString();
 
                 var q2 = new QueryProperties { Query = @"select * from duplicate_inserttest_table", ConnectionString = ConnectionString };
                 result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options, new CancellationToken());
-                
+
             }
 
             Assert.AreEqual(ex_string.Contains("ORA-00001: unique constraint"), true);
@@ -408,17 +407,20 @@ END;", ConnectionString = ConnectionString };
         }
 
         [Test]
-
         [Category("BatchOperationTests")]
         public async Task BatchOperationInsertTest()
         {
 
             //t(NR varchar(20), NAM varchar(20))",
-            var inputbatch = new InputBatchOperation { Query = @"BEGIN
-insert into batch_table_test (NR,NAM)values(:NR,:NAM);
-END;",  InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"nannaa2\"},{\"NR\":333, \"NAM\":\"nannaa3\"},{\"NR\":444, \"NAM\":\"nannaa4\"}]",
-                ConnectionString = ConnectionString };
-        
+            var inputbatch = new InputBatchOperation
+            {
+                Query = @"BEGIN
+                insert into batch_table_test (NR,NAM)values(:NR,:NAM);
+                END;",
+                InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"nannaa2\"},{\"NR\":333, \"NAM\":\"nannaa3\"}, {\"NR\":444, \"NAM\":\"nannaa4\"}]",
+                ConnectionString = ConnectionString
+            };
+
             var options = new BatchOptions();
             options.ThrowErrorOnFailure = true;
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
@@ -453,7 +455,309 @@ END;",  InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
             Assert.AreEqual(result_debug.Result, "ROWCOUNT\r\n4\r\n");
+
         }
 
+        /// <summary>
+        /// Two simple select querys to the database
+        /// </summary>
+        [Test]
+        [Category("MultiqueryTests")]
+        public async Task MultiQueryJSON()
+        {
+            var multiQueryProperties = new InputMultiQuery { Queries = new InputQuery[] { new InputQuery { InputQueryString = "SELECT * FROM DecimalTest" }, new InputQuery { InputQueryString = "SELECT * FROM HodorTest" } }, ConnectionString = ConnectionString };
+            var outputProperties = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Json,
+                JsonOutput = new JsonOutputProperties()
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
+
+            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+
+            Assert.AreNotEqual("", result.Results);
+            Assert.AreEqual(true, result.Success);
+        }
+
+        /// <summary>
+        /// Two simple select querys to the db with isolationlevel = serializable
+        /// </summary>
+        [Test]
+        [Category("MultiqueryTests")]
+        public async Task MultiQueryJSONIsolation()
+        {
+            var multiQueryProperties = new InputMultiQuery
+            {
+                Queries = new InputQuery[] { new InputQuery { InputQueryString = "SELECT * FROM DecimalTest" }, new InputQuery { InputQueryString = "SELECT * FROM HodorTest" },
+                new InputQuery { InputQueryString = "INSERT INTO HodorTest values('test', 890)" }, new InputQuery { InputQueryString ="DELETE FROM HodorTest WHERE value = 890" } },
+                ConnectionString = ConnectionString
+            };
+
+            var outputProperties = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Json,
+                JsonOutput = new JsonOutputProperties(),
+                OutputToFile = false,
+
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true, IsolationLevel = Oracle_IsolationLevel.Serializable };
+
+            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+
+            Assert.AreEqual(result.Results.First?["Output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
+            Assert.AreEqual(true, result.Success);
+        }
+
+        /// <summary>
+        /// Check if corrupted query is rolled back
+        /// </summary>
+        [Test]
+        [Category("MultiqueryTests")]
+        public async Task MultiQuerRollback()
+        {
+            var multiQueryProperties = new InputMultiQuery { Queries = new InputQuery[] { new InputQuery { InputQueryString = "insert into DecimalTest(DecimalValue) values(10.6)" }, new InputQuery { InputQueryString = "SELECT * FROM foo" } }, ConnectionString = ConnectionString };
+            var outputProperties = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Json,
+                JsonOutput = new JsonOutputProperties(),
+                OutputToFile = true,
+                OutputFile = new OutputFileProperties
+                {
+                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                }
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true, IsolationLevel = Oracle_IsolationLevel.Serializable };
+
+            MultiQueryOutput result = new MultiQueryOutput();
+
+            try
+            {
+                result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+
+            }
+
+            catch (Exception)
+            {
+
+            }
+            var multiQueryProperties2 = new InputMultiQuery { Queries = new InputQuery[] { new InputQuery { InputQueryString = "SELECT * FROM DecimalTest" } }, ConnectionString = ConnectionString };
+            var outputProperties2 = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Json,
+                JsonOutput = new JsonOutputProperties()
+            };
+            var options2 = new QueryOptions { ThrowErrorOnFailure = true };
+
+            MultiQueryOutput result2 = await OracleTasks.TransactionalMultiQuery(multiQueryProperties2, outputProperties2, options2, new CancellationToken());
+
+            Assert.That(() => OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken()), Throws.TypeOf<OracleException>());
+            Assert.AreEqual(false, result.Success);
+            Assert.AreNotEqual(2, result2.Results.Count);
+
+            File.Delete(outputProperties.OutputFile.Path);
+        }
+
+        [Test]
+        [Category("MultiqueryTests")]
+        public async Task MultiqueryShouldWriteJsonFile()
+        {
+            var multiQueryProperties = new InputMultiQuery
+            {
+                Queries = new InputQuery[] { new InputQuery { InputQueryString = "SELECT * FROM DecimalTest" }, new InputQuery { InputQueryString = "SELECT * FROM HodorTest" },
+                new InputQuery { InputQueryString = "INSERT INTO HodorTest values('test', 890)" }, new InputQuery { InputQueryString = "DELETE FROM HodorTest WHERE value = 890" } },
+                ConnectionString = ConnectionString
+            };
+            var outputProperties = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Json,
+                JsonOutput = new JsonOutputProperties(),
+                OutputToFile = true,
+                OutputFile = new OutputFileProperties
+                {
+                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                }
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
+
+            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+
+            Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
+            Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
+            Assert.IsTrue(File.ReadAllText(result.Results.First?["OutputPath"]?.ToString()).Contains("1.123456789123456789123456789"));
+
+            File.Delete(outputProperties.OutputFile.Path);
+        }
+
+        [Test]
+        [Category("MultiqueryTests")]
+        public async Task MultiqueryShouldWriteCSVFile()
+        {
+            var multiQueryProperties = new InputMultiQuery
+            {
+                Queries = new InputQuery[] { new InputQuery { InputQueryString = "SELECT * FROM DecimalTest" }, new InputQuery { InputQueryString = "SELECT * FROM HodorTest" },
+                new InputQuery { InputQueryString = "INSERT INTO HodorTest values('test', 890)" }, new InputQuery { InputQueryString = "DELETE FROM HodorTest WHERE value = 890" } },
+                ConnectionString = ConnectionString
+            };
+            var outputProperties = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Csv,
+                CsvOutput = new CsvOutputProperties
+                {
+                    CsvSeparator = ";",
+                    IncludeHeaders = true
+                },
+                OutputToFile = true,
+                OutputFile = new OutputFileProperties
+                {
+                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                }
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
+
+            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+
+            Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
+            Assert.IsTrue(File.ReadAllText(result.Results.First?["OutputPath"]?.ToString()).Contains("1.123456789123456789123456789"));
+            File.Delete(outputProperties.OutputFile.Path);
+        }
+
+        [Test]
+        [Category("MultiqueryTests")]
+        public async Task MultiqueryShouldWriteXMLFile()
+        {
+            var multiQueryProperties = new InputMultiQuery
+            {
+                Queries = new InputQuery[] { new InputQuery { InputQueryString = "SELECT * FROM DecimalTest" }, new InputQuery { InputQueryString = "SELECT * FROM HodorTest" },
+                new InputQuery { InputQueryString = "INSERT INTO HodorTest values('test', 890)" }, new InputQuery { InputQueryString = "DELETE FROM HodorTest WHERE value = 890" } },
+                ConnectionString = ConnectionString
+            };
+            var outputProperties = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Xml,
+                OutputToFile = true,
+                XmlOutput = new XmlOutputProperties
+                {
+                    RootElementName = "items",
+                    RowElementName = "item"
+                },
+                OutputFile = new OutputFileProperties
+                {
+                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                }
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
+
+            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+
+            Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
+            Assert.IsTrue(File.ReadAllText(result.Results.First?["OutputPath"]?.ToString()).Contains("<DECIMALVALUE>1.12345678912345678912345678912345678</DECIMALVALUE>"));
+            File.Delete(outputProperties.OutputFile.Path);
+        }
+
+        [Test]
+        [Category("MultiqueryTests")]
+        public async Task MultiBatchOperationInsertTest()
+        {
+            var inputbatch = new InputMultiBatchOperation
+            {
+                BatchQueries = new BatchOperationQuery[] {
+                new BatchOperationQuery {BatchInputQuery = @"delete from batch_table_test", InputJson = ""},
+                new BatchOperationQuery { BatchInputQuery = @"insert into batch_table_test (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"nannaa2\"},{\"NR\":333, \"NAM\":\"nannaa3\"}, {\"NR\":444, \"NAM\":\"nannaa4\"}]" },
+                new BatchOperationQuery { BatchInputQuery = @"insert into batch_table_test (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 555, \"NAM\":\"nannaa1\"},{\"NR\":666, \"NAM\":\"nannaa2\"}]" }
+            },
+
+                ConnectionString = ConnectionString
+            };
+
+            var options = new BatchOptions();
+            options.ThrowErrorOnFailure = true;
+            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+
+            MultiBatchOperationOutput output = new MultiBatchOperationOutput();
+
+            try
+            {
+                output = await OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken());
+            }
+            catch (Exception ee)
+            {
+                throw ee;
+            }
+
+            var o = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Json,
+                JsonOutput = new JsonOutputProperties(),
+                OutputToFile = false
+            };
+
+            var q2 = new QueryProperties { Query = @"select count(*) as ROWCOUNT from batch_table_test", ConnectionString = ConnectionString };
+            var options_2 = new QueryOptions();
+            options.ThrowErrorOnFailure = true;
+            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+            var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
+
+            Assert.AreEqual(result_debug.Result, "[\r\n  {\r\n    \"ROWCOUNT\": 6.0\r\n  }\r\n]");
+        }
+
+        /// <summary>
+        /// Check if corrupted query is rolled back
+        /// </summary>
+        [Test]
+        [Category("MultiqueryTests")]
+        public async Task MultiBatchOpeartionRollback()
+        {
+
+            var inputbatch = new InputMultiBatchOperation
+            {
+                BatchQueries = new BatchOperationQuery[] {
+                new BatchOperationQuery {BatchInputQuery = @"delete from batch_table_test", InputJson = ""},
+                new BatchOperationQuery { BatchInputQuery = @"insert into batch_table_test (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 111, \"NAM\":\"nannaa1\"},{\"NR\":222, \"NAM\":\"nannaa2\"},{\"NR\":333, \"NAM\":\"nannaa3\"}, {\"NR\":444, \"NAM\":\"nannaa4\"}]" },
+                new BatchOperationQuery { BatchInputQuery = @"insert into batch_table_testfoo (NR,NAM)values(:NR,:NAM)", InputJson = "[{\"NR\": 555, \"NAM\":\"nannaa1\"},{\"NR\":666, \"NAM\":\"nannaa2\"}]" }
+            },
+
+                ConnectionString = ConnectionString
+            };
+
+            var options = new BatchOptions();
+            options.ThrowErrorOnFailure = true;
+            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+
+            MultiBatchOperationOutput output = new MultiBatchOperationOutput();
+
+            try
+            {
+                output = await OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken());
+            }
+            catch (Exception)
+            {
+
+            }
+            var multiQueryProperties2 = new InputMultiQuery { Queries = new InputQuery[] { new InputQuery { InputQueryString = "SELECT * FROM " } }, ConnectionString = ConnectionString };
+            var outputProperties2 = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Json,
+                JsonOutput = new JsonOutputProperties()
+            };
+            var options2 = new QueryOptions { ThrowErrorOnFailure = true };
+
+            var o = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Json,
+                JsonOutput = new JsonOutputProperties(),
+                OutputToFile = false
+            };
+
+            var q2 = new QueryProperties { Query = @"select count(*) as ROWCOUNT from batch_table_test", ConnectionString = ConnectionString };
+            var options_2 = new QueryOptions();
+            options.ThrowErrorOnFailure = true;
+            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+            var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
+
+            Assert.That(() => OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken()), Throws.TypeOf<OracleException>());
+            Assert.AreEqual(false, output.Success);
+            Assert.AreEqual(result_debug.Result, "[\r\n  {\r\n    \"ROWCOUNT\": 4.0\r\n  }\r\n]");
+
+        }
     }
 }

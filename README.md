@@ -7,7 +7,9 @@ FRENDS Task for querying data from Oracle database
 - [Installing](#installing)
 - [Task](#tasks)
 	- [ExecuteQueryOracle](#ExecuteQueryOracle)
-	- [BatchOperation](#batchoperation)
+	- [BatchOperation](#BatchOperationOracle)
+	- [TransactionalMultiQuery](#TransactionalMultiQuery)
+	- [MultiBatchOperationOracle](#MultiBatchOperationOracle)
 - [Known issues](#known-issues)
 - [Building](#building)
 - [Contributing](#contributing)
@@ -27,10 +29,10 @@ Executes query against Oracle database.
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
 | Query | string | The query to execute | `SELECT * FROM Table WHERE field = :paramName`|
-| Parameters | array[Query Parameter] | Possible query parameters. See [Query Parameter](#query-parameter) |  |
+| Parameters | array[Query Parameter] | Possible query parameters. See [Query Parameters Properties](#query-parameters-properties) |  |
 | Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
 
-#### Parameters Properties
+#### Query Parameters Properties
 
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
@@ -103,7 +105,7 @@ Example result with return type JSON
 
 *Success:* ``` True ```
 *Message:* ``` null ```
-*Result:* 
+*Results:* 
 ```
 [ 
  {
@@ -122,7 +124,7 @@ Example result with return type JSON
 
 To access query result, use 
 ```
-#result.Result
+#result.Results
 ```
 
 ## BatchOperationOracle
@@ -132,7 +134,7 @@ Create a query for a batch operation like insert. The query is executed with Dap
 ### Input
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Query | string | The query to execute | `insert into MyTable(ID,NAME) VALUES (@Id, @FirstName)`|
+| Query | string | The query to execute | `INSERT INTO MyTable(ID,NAME) VALUES (:Id, :FirstName)`|
 | InputJson | string |A Json Array of objects that has their properties mapped to the parameters in the Query|[{"Id":10, "FirstName": "Foo"},{"Id":15, "FirstName": "Bar"}]  |
 | Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
 
@@ -145,8 +147,150 @@ Create a query for a batch operation like insert. The query is executed with Dap
 | Timeout seconds | int | Query timeout in seconds | `60` |
 
 
-#### Result
+### Result
 Integer - Number of affected rows
+
+## TransactionalMultiQuery
+
+Execute multiple queries and operations in one transaction.
+
+### Query input Properties
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| InputQuery | Array[string] | The queries to execute |  |
+| Parameters | Array[Query Parameter] | Possible query parameters. |  |
+| Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
+
+#### Query Parameters Properties
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Name | string | Parameter name used in Query property | `username` |
+| Value | string | Parameter value | `myUser` |
+| Data type | enum<> | Parameter data type | `NVarchar2` |
+
+### Query Output Properties
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Return type | array[enum<[Json](#json-output), [Xml](#xml-output), [Csv](#csv-output)>] | Data return type format | Array[`Json`] |
+| OutputToFile | bool | true to write results to a file, false to return results to executin process | `true` |
+
+#### Output File
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Path | string | Output path with file name | `c:\temp\output.json` |
+| Encoding | string | Encoding to use for the output file | `utf-8` |
+
+### Query Options
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
+| Isolation Level| enum<None, ReadCommitted, Serializable> | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  None, Serializable and ReadCommitted. | None |
+| Timeout seconds | int | Query timeout in seconds | `60` |
+| Enable detaild logging | bool | If true, enables setting additional tracing. If false tracing level is set to default value is 0 indicating tracing is disabled. However, errors will always be traced. | `false` |
+| Trace level | int | Valid Values: 1 = public APIs, 2 = private APIs, 4 = network APIs/data More information https://docs.oracle.com/en/database/oracle/oracle-data-access-components/18.3/odpnt/ConfigurationTraceLevel.html#GUID-E4A2B13E-E0AC-4E79-BCD9-51C4DBBBFEA5 | `60` |
+| Trace file location | string | Destination directory for trace files. Can not be left empty. | `%TEMP%\ODP.NET\core\trace` |
+
+
+
+### Result
+
+Object { bool Success, string Message, JArray Result }
+
+If output type is file, then _Result_ indicates the written file path. Otherwise it will hold the query output in xml, json or csv.
+
+Example result with return type JSON when SELECT, SELECT, INSERT and DELETE have been executed.
+
+*Success:* ``` True ```
+*Message:* ``` null ```
+*Results:* 
+```
+[
+  {
+    "QueryIndex": 0,
+    "Output": [
+      {
+        "DECIMALVALUE": 1.123456789123456789123456789
+      }
+    ]
+  },
+  {
+    "QueryIndex": 1,
+    "Output": [
+      {
+        "NAME": "hodor",
+        "VALUE": 123
+      },
+      {
+        "NAME": "jon",
+        "VALUE": 321
+      }
+    ]
+  },
+  {
+    "QueryIndex": 2,
+    "Output": []
+  },
+  {
+    "QueryIndex": 3,
+    "Output": []
+  }
+]
+```
+
+To access query result, use 
+```
+#result.Results
+```
+
+## MultiBatchOperationOracle
+
+A task to execute multiple operations in one transaction. Task does not support SELECT queries, but you can bulk insert data. The queries are executed with Dapper ExecuteAsync.
+
+### Input
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| BatchOperationQuery | Array[string] | The queries to execute |  |
+| InputJson | string |A Json Array of objects that has their properties mapped to the parameters in the Query|[{"Id":10, "FirstName": "Foo"},{"Id":15, "FirstName": "Bar"}]  |
+| Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
+
+### Options
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
+| Transaction Isolation Level| Oracle_IsolationLevel | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  Serializable, ReadCommitted | Serializable |
+| Timeout seconds | int | Query timeout in seconds | `60` |
+
+### Result
+
+Object { bool Success, string Message, JArray Result }
+
+If output type is file, then _Result_ indicates the written file path. Otherwise it will hold the query output in xml, json or csv.
+
+Example result with return type JSON when INSERT and UPDATE have been executed.
+
+*Success:* ``` True ```
+*Message:* ``` null ```
+*Results:* 
+```
+[
+  {
+    "QueryIndex": 0,
+    "RowCount": 125
+  },
+  {
+    "QueryIndex": 1,
+    "RowCount": 10
+  }
+]
+```
+
+To access query result, use 
+```
+#result.Result
+```
 
 # Known issues
 
@@ -190,4 +334,5 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 1.0.0 | Initial version of Oracle Query Task |
 | 2.0.0 | Breaking changes: target .netstandard, more user friendly task settings, csv output, all output types are now possibly to stream directly into a file |
 | 2.0.6 | Enabled detailed logging. |
-| 3.0.0 | Query ranamed and namespace changed to more generic to enable adding new task. Added BatchOperationOracle task.
+| 3.0.0 | Query ranamed and namespace changed to more generic to enable adding new task. Added BatchOperationOracle task. |
+| 3.1.0 | Multiquery tasks added |
