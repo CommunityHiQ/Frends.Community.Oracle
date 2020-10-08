@@ -2,12 +2,16 @@
 
 FRENDS Task for querying data from Oracle database
 
+[![Actions Status](https://github.com/CommunityHiQ/Frends.Community.Oracle/workflows/PackAndPushAfterMerge/badge.svg)](https://github.com/CommunityHiQ/Frends.Community.Oracle/actions) ![MyGet](https://img.shields.io/myget/frends-community/v/Frends.Community.Oracle) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+
 - [Installing](#installing)
 - [Task](#tasks)
 	- [ExecuteQueryOracle](#ExecuteQueryOracle)
 	- [BatchOperation](#BatchOperationOracle)
 	- [TransactionalMultiQuery](#TransactionalMultiQuery)
 	- [MultiBatchOperationOracle](#MultiBatchOperationOracle)
+	- [BatchOperation](#batchoperation)
+- [Known issues](#known-issues)
 - [Building](#building)
 - [Contributing](#contributing)
 - [Change Log](#change-log)
@@ -15,6 +19,7 @@ FRENDS Task for querying data from Oracle database
 # Installing
 
 You can install the task via frends UI Task View or you can find the NuGet package from the following NuGet feed https://www.myget.org/F/frends-community/api/v3/index.json and in Gallery view in MyGet https://www.myget.org/feed/frends-community/package/nuget/Frends.Community.Oracle
+
 # Task
 
 ## ExecuteQueryOracle
@@ -288,6 +293,12 @@ To access query result, use
 #result.Result
 ```
 
+# Known issues
+
+FRENDS Agents try to keep their memory usage as low as possible by removing Processes from memory that are no longer being executed. Sometimes Oracle taskss cause issues when trying to remove old Processes by having handles open. This will cause memory consumption to rise until the Agent is restarted.
+
+This is caused by driver sometimes misshandling connections to Oracle Notification Services. This can be prevented, and thus solving the unloadability issue, by adding to connection string `ENLIST=false; HA EVENTS=false; LOAD BALANCING=false;` See more: https://stackoverflow.com/a/45943074/6734525
+ 
 # Building
 
 Clone a copy of the repo
@@ -326,3 +337,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 2.0.6 | Enabled detailed logging. |
 | 3.0.0 | Query ranamed and namespace changed to more generic to enable adding new task. Added BatchOperationOracle task. |
 | 3.1.0 | Multiquery tasks added |
+| 3.0.0 | Query ranamed and namespace changed to more generic to enable adding new task. Added BatchOperationOracle task.
