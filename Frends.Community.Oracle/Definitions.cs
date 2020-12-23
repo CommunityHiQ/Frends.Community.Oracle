@@ -309,8 +309,6 @@ namespace Frends.Community.Oracle
         ///<summary>
         ///Array of queries to execute
         ///</summary>
-
-        //public InputQuery[] Queries { get; set; }
         public InputQuery[] Queries { get; set; }
 
         /// <summary>
