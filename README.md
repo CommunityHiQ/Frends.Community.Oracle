@@ -97,11 +97,30 @@ Executes query against Oracle database.
 
 ### Result
 
-| Property    | Type       | Description     | Example |
-| ------------| -----------| --------------- | ------- |
-| Success | `bool` | ... | `true` |
-| Message | `string` | ... |  |
-| Result | `JArray` | If OutputToFile is true, the Result indicates the written file path. Otherwise, it is an array which contains a result object for each executed query.| `[{"Name": "Teela", "Age": 42, "Address": "Test road 123"}]` |
+Object { bool Success, string Message, string Result }
+
+If output type is file, then _Result_ indicates the written file path. Otherwise it will hold the query output in xml, json or csv.
+
+Example result with return type JSON
+
+*Success:* ``` True ```
+*Message:* ``` null ```
+*Results:* 
+```
+[ 
+ {
+  "Name": "Teela",
+  "Age": 42,
+  "Address": "Test road 123"
+ },
+ {
+  "Name": "Adam",
+  "Age": 42,
+  "Address": null
+ }
+]
+```
+
 
 To access query result, use 
 ```
@@ -176,6 +195,12 @@ Execute multiple queries and operations in one transaction.
 
 
 ### Result
+
+| Property    | Type       | Description     | Example |
+| ------------| -----------| --------------- | ------- |
+| Success | `bool` | ... | `true` |
+| Message | `string` | ... |  |
+| Result | `JArray` | If OutputToFile is true, the Result indicates the written file path. Otherwise, it is an array which contains a result object for each executed query.| `[{"Name": "Teela", "Age": 42, "Address": "Test road 123"}]` |
 
 Object { bool Success, string Message, JArray Result }
 
