@@ -154,101 +154,47 @@ Integer - Number of affected rows
 
 Execute multiple queries and operations in one transaction.
 
-### Query input Properties
+### Input Properties
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| InputQuery | Array[string] | The queries to execute |  |
-| Parameters | Array[Query Parameter] | Possible query parameters. |  |
-| Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
+| Queries | `Array[string]` | The queries to execute | `["SELECT * FROM TestTable", "DELETE * FROM TestTable"]` |
+| Parameters | `Array[Query Parameter]` | Possible query parameters. See [Query Parameters Properties](#query-parameters-properties) |  |
+| Connection string | `string` | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
 
-#### Query Parameters Properties
-
+### Output Properties
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Name | string | Parameter name used in Query property | `username` |
-| Value | string | Parameter value | `myUser` |
-| Data type | enum<> | Parameter data type | `NVarchar2` |
-
-### Query Output Properties
-| Property    | Type       | Description     | Example |
-| ------------| -----------| --------------- | ------- |
-| Return type | array[enum<[Json](#json-output), [Xml](#xml-output), [Csv](#csv-output)>] | Data return type format | Array[`Json`] |
-| OutputToFile | bool | true to write results to a file, false to return results to executin process | `true` |
+| Return type | enum<[Json](#json-output), [Xml](#xml-output), [Csv](#csv-output)> | Data return type format | Json |
+| Output to file | `bool` | If true, write results to a file. Otherwise, return the results to executing process. | `true` |
 
 #### Output File
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Path | string | Output path with file name | `c:\temp\output.json` |
-| Encoding | string | Encoding to use for the output file | `utf-8` |
+| Path | `string` | Output path with file name | `c:\temp\output.json` |
+| Encoding | `string` | Encoding to use for the output file | `utf-8` |
 
 ### Query Options
 
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
+| Throw error on failure | `bool` | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
 | Isolation Level| enum<None, ReadCommitted, Serializable> | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  None, Serializable and ReadCommitted. | None |
-| Timeout seconds | int | Query timeout in seconds | `60` |
-| Enable detaild logging | bool | If true, enables setting additional tracing. If false tracing level is set to default value is 0 indicating tracing is disabled. However, errors will always be traced. | `false` |
-| Trace level | int | Valid Values: 1 = public APIs, 2 = private APIs, 4 = network APIs/data More information https://docs.oracle.com/en/database/oracle/oracle-data-access-components/18.3/odpnt/ConfigurationTraceLevel.html#GUID-E4A2B13E-E0AC-4E79-BCD9-51C4DBBBFEA5 | `60` |
-| Trace file location | string | Destination directory for trace files. Can not be left empty. | `%TEMP%\ODP.NET\core\trace` |
+| Timeout seconds | `int` | Query timeout in seconds | `60` |
+| Enable detaild logging | `bool` | If true, enables setting additional tracing. If false tracing level is set to default value is 0 indicating tracing is disabled. However, errors will always be traced. | `false` |
+| Trace level | `int` | Valid Values: 1 = public APIs, 2 = private APIs, 4 = network APIs/data More information https://docs.oracle.com/en/database/oracle/oracle-data-access-components/18.3/odpnt/ConfigurationTraceLevel.html#GUID-E4A2B13E-E0AC-4E79-BCD9-51C4DBBBFEA5 | `60` |
+| Trace file location | `string` | Destination directory for trace files. Cannot be left empty. | `%TEMP%\ODP.NET\core\trace` |
 
 
 
 ### Result
 
+The result is an object with following properties
+
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Success | `bool` | ... | `true` |
-| Message | `string` | ... |  |
-| Result | `JArray` | If OutputToFile is true, the Result indicates the written file path. Otherwise, it is an array which contains a result object for each executed query.| `[{"Name": "Teela", "Age": 42, "Address": "Test road 123"}]` |
-
-Object { bool Success, string Message, JArray Result }
-
-If output type is file, then _Result_ indicates the written file path. Otherwise it will hold the query output in xml, json or csv.
-
-Example result with return type JSON when SELECT, SELECT, INSERT and DELETE have been executed.
-
-*Success:* ``` True ```
-*Message:* ``` null ```
-*Results:* 
-```
-[
-  {
-    "QueryIndex": 0,
-    "Output": [
-      {
-        "DECIMALVALUE": 1.123456789123456789123456789
-      }
-    ]
-  },
-  {
-    "QueryIndex": 1,
-    "Output": [
-      {
-        "NAME": "hodor",
-        "VALUE": 123
-      },
-      {
-        "NAME": "jon",
-        "VALUE": 321
-      }
-    ]
-  },
-  {
-    "QueryIndex": 2,
-    "Output": []
-  },
-  {
-    "QueryIndex": 3,
-    "Output": []
-  }
-]
-```
-
-To access query result, use 
-```
-#result.Results
-```
+| Success | `bool` | Boolean indicator whether or not the execution of queries succeeded. | `true` |
+| Message | `string` | Contains an error message if an error occured and Throw error on failure is true. | "" |
+| Results | `JArray` or `string` | If Output to file is true, this indicates the written file path. Otherwise, this is an array which contains a result object for each executed query.| `[{"Name": "Teela", "Age": 42, "Address": "Test road 123"}]` |
 
 ## MultiBatchOperationOracle
 
@@ -257,17 +203,17 @@ A task to execute multiple operations in one transaction. Task does not support 
 ### Input
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| BatchOperationQuery | Array[string] | The queries to execute |  |
-| InputJson | string |A Json Array of objects that has their properties mapped to the parameters in the Query|[{"Id":10, "FirstName": "Foo"},{"Id":15, "FirstName": "Bar"}]  |
-| Connection string | string | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
+| BatchOperationQuery | `Array[string]` | The queries to execute | `["INSERT INTO TestTable (ID) VALUES (1)", "DELETE * FROM TestTable"]` |
+| InputJson | `string` | A Json array of objects that has their properties mapped to the parameters in the Query|[{"Id":10, "FirstName": "Foo"},{"Id":15, "FirstName": "Bar"}]  |
+| Connection string | `string` | Oracle database connection string | `Data Source=(DESCRIPTION=(ADDRESS = (PROTOCOL = TCP)(HOST = oracleHost)(PORT = 1521))(CONNECT_DATA = (SERVICE_NAME = MYSERVICE)))` |
 
 ### Options
 
 | Property    | Type       | Description     | Example |
 | ------------| -----------| --------------- | ------- |
-| Throw error on failure | bool | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
-| Transaction Isolation Level| Oracle_IsolationLevel | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  Serializable, ReadCommitted | Serializable |
-| Timeout seconds | int | Query timeout in seconds | `60` |
+| Throw error on failure | `bool` | Specify if Exception should be thrown when error occurs. If set to *false*, task outcome can be checked from #result.Success property. | `false` |
+| Transaction Isolation Level| enum<None, ReadCommitted, Serializable> | Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Possible values are:  Serializable, ReadCommitted | Serializable |
+| Timeout seconds | `int` | Query timeout in seconds | `60` |
 
 ### Result
 

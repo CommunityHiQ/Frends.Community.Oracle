@@ -13,7 +13,7 @@ namespace Frends.Community.Oracle.Query.Tests
     /// THESE TESTS DO NOT WORK UNLESS YOU INSTALL ORACLE LOCALLY ON YOUR OWN COMPUTER!
     /// </summary>
     [TestFixture]
-    [Ignore("For some reason timeouts on build server")]
+    //[Ignore("For some reason timeouts on build server")]
     public class OracleTests
     {
         // Problems with local oracle, tests not implemented yet
@@ -454,7 +454,7 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
-            Assert.AreEqual(result_debug.Result, "ROWCOUNT\r\n4\r\n");
+            Assert.AreEqual("ROWCOUNT\r\n4\r\n", result_debug.Result);
 
         }
 

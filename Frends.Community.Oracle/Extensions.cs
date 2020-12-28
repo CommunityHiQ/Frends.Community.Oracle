@@ -196,10 +196,20 @@ namespace Frends.Community.Oracle
                         headerWritten = true;
                     }
 
+                    sb = new StringBuilder();
                     var fieldValues = new object[reader.FieldCount];
                     for (int i = 0; i < reader.FieldCount; i++)
                     {
-                        string fieldValue = reader.GetValue(i).ToString();
+                        if (reader.GetDataTypeName(i).Equals("Decimal"))
+                        {
+                            OracleDecimal v = reader.GetOracleDecimal(i);
+                            fieldValues[i] = OracleDecimal.SetPrecision(v, 28);
+                        }
+                        else
+                        {
+                            fieldValues[i] = reader.GetValue(i);
+                        }
+                        string fieldValue = fieldValues[i].ToString();
                         sb.Append(fieldValue);
                         if (i < reader.FieldCount - 1)
                         {
@@ -332,10 +342,20 @@ namespace Frends.Community.Oracle
                             headerWritten = true;
                         }
 
+                        sb = new StringBuilder();
                         var fieldValues = new object[reader.FieldCount];
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            string fieldValue = reader.GetValue(i).ToString();
+                            if (reader.GetDataTypeName(i).Equals("Decimal"))
+                            {
+                                OracleDecimal v = reader.GetOracleDecimal(i);
+                                fieldValues[i] = OracleDecimal.SetPrecision(v, 28);
+                            }
+                            else
+                            {
+                                fieldValues[i] = reader.GetValue(i);
+                            }
+                            string fieldValue = fieldValues[i].ToString();
                             sb.Append(fieldValue);
                             if (i < reader.FieldCount - 1)
                             {

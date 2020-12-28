@@ -36,7 +36,7 @@ namespace Frends.Community.Oracle
         {
             try
             {
-                if (queryOptions.EnableDetaildLogging == true)
+                if (queryOptions.EnableDetailedLogging == true)
                 {
                     OracleConfiguration.TraceFileLocation = queryOptions.TraceFileLocation;
                     OracleConfiguration.TraceLevel = queryOptions.TraceLevel;
@@ -147,7 +147,7 @@ namespace Frends.Community.Oracle
         /// <param name="output"></param>
         /// <param name="options"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Object { bool Success, string Message, JArray Results}</returns>
+        /// <returns>Object { bool Success, string Message, Array Results}</returns>
         ///
 
         public static async Task<MultiQueryOutput> TransactionalMultiQuery(
@@ -159,6 +159,12 @@ namespace Frends.Community.Oracle
 
             try
             {
+                if (options.EnableDetailedLogging == true)
+                {
+                    OracleConfiguration.TraceFileLocation = options.TraceFileLocation;
+                    OracleConfiguration.TraceLevel = options.TraceLevel;
+                }
+
                 using (var c = new OracleConnection(input.ConnectionString))
                 {
                     try
