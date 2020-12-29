@@ -209,6 +209,7 @@ namespace Frends.Community.Oracle
                         {
                             fieldValues[i] = reader.GetValue(i);
                         }
+
                         string fieldValue = fieldValues[i].ToString();
                         sb.Append(fieldValue);
                         if (i < reader.FieldCount - 1)
