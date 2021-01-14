@@ -33,7 +33,7 @@ namespace Frends.Community.Oracle
         /// <summary>
         /// Oracle connection string
         /// </summary>
-        [DisplayFormat(DataFormatString = "Text")]
+        [PasswordPropertyText]
         [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
         public string ConnectionString { get; set; }
     }
@@ -123,19 +123,19 @@ namespace Frends.Community.Oracle
         /// EnableDetaildLogging
         /// </summary>
         [DefaultValue(false)]
-        public bool EnableDetaildLogging { get; set; }
+        public bool EnableDetailedLogging { get; set; }
 
         /// <summary>
         /// TraceLevel
         /// </summary>
-        [UIHint(nameof(EnableDetaildLogging), "", true)]
+        [UIHint(nameof(EnableDetailedLogging), "", true)]
         [DefaultValue(7)]
         public int TraceLevel { get; set; }
 
         /// <summary>
         /// TraceFileLocation
         /// </summary>
-        [UIHint(nameof(EnableDetaildLogging), "", true)]
+        [UIHint(nameof(EnableDetailedLogging), "", true)]
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue(@"C:\temp")]
         public string TraceFileLocation { get; set; }
@@ -298,7 +298,7 @@ namespace Frends.Community.Oracle
         /// <summary>
         /// Oracle connection string
         /// </summary>
-        [DisplayFormat(DataFormatString = "Text")]
+        [PasswordPropertyText]
         [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
         public string ConnectionString { get; set; }
 
@@ -309,8 +309,6 @@ namespace Frends.Community.Oracle
         ///<summary>
         ///Array of queries to execute
         ///</summary>
-
-        //public InputQuery[] Queries { get; set; }
         public InputQuery[] Queries { get; set; }
 
         /// <summary>
@@ -321,7 +319,7 @@ namespace Frends.Community.Oracle
         /// <summary>
         /// Oracle connection string
         /// </summary>
-        [DisplayFormat(DataFormatString = "Text")]
+        [PasswordPropertyText]
         [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
         public string ConnectionString { get; set; }
 
@@ -344,7 +342,7 @@ namespace Frends.Community.Oracle
         /// <summary>
         /// Oracle connection string
         /// </summary>
-        [DisplayFormat(DataFormatString = "Text")]
+        [PasswordPropertyText]
         [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
         public string ConnectionString { get; set; }
 
