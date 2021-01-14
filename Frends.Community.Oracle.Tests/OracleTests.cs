@@ -13,7 +13,7 @@ namespace Frends.Community.Oracle.Query.Tests
     /// THESE TESTS DO NOT WORK UNLESS YOU INSTALL ORACLE LOCALLY ON YOUR OWN COMPUTER!
     /// </summary>
     [TestFixture]
-    //[Ignore("For some reason timeouts on build server")]
+    [Ignore("For some reason timeouts on build server")]
     public class OracleTests
     {
         // Problems with local oracle, tests not implemented yet
