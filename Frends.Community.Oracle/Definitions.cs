@@ -227,6 +227,13 @@ namespace Frends.Community.Oracle
         /// </summary>
         [DefaultValue(-1)]
         public int MaxmimumRows { get; set; }
+
+        /// <summary>
+        /// Overwrite decimal value separator char. If empty, uses Oracle default.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("")]
+        public string DecimalSeparator { get; set; }
     }
 
     /// <summary>
@@ -257,6 +264,13 @@ namespace Frends.Community.Oracle
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue(";")]
         public string CsvSeparator { get; set; }
+
+        /// <summary>
+        /// Overwrite decimal value separator char. If empty, uses Oracle default.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("")]
+        public string DecimalSeparator { get; set; }
     }
 
     /// <summary>
