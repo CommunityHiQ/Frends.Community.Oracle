@@ -30,6 +30,75 @@ namespace Frends.Community.Oracle
         {
             return (TEnum)Enum.Parse(typeof(TEnum), source.ToString(), true);
         }
+
+        private static string ParseOracleDate(object oracleData, string dateType, string dateFormat)
+        {
+            string dateString = "";
+            switch (dateType)
+            {
+                case "OracleDate":
+                    OracleDate oDate = (OracleDate)oracleData;
+                    if(!oDate.IsNull)
+                    {
+                        if(!string.IsNullOrWhiteSpace(dateFormat))
+                        {
+                            DateTime dt = new DateTime(oDate.Year,oDate.Month,oDate.Day,oDate.Hour,oDate.Minute,oDate.Second);
+                            dateString = dt.ToString(dateFormat);
+                        }
+                        else dateString = oDate.ToString();
+                    }
+                break;
+                case "OracleTimeStamp":
+                    OracleTimeStamp oTimeStamp = (OracleTimeStamp)oracleData;
+                    if(!oTimeStamp.IsNull)
+                    {
+                        if(!string.IsNullOrWhiteSpace(dateFormat))
+                        {
+                            // Is this the best way to get milliseconds from double to int?
+                            int msOut = 0;
+                            Int32.TryParse(oTimeStamp.Millisecond.ToString("000").Substring(0,3), out msOut);
+                            DateTime dt = new DateTime(oTimeStamp.Year,oTimeStamp.Month,oTimeStamp.Day,oTimeStamp.Hour,oTimeStamp.Minute,oTimeStamp.Second, msOut);
+                            dateString = dt.ToString(dateFormat);
+                        }
+                        else dateString = oTimeStamp.ToString();
+                    }
+                break;
+                case "OracleTimeStampLTZ":
+                    OracleTimeStampLTZ oTimeStampLTZ = (OracleTimeStampLTZ)oracleData;
+                    if(!oTimeStampLTZ.IsNull)
+                    {
+                        if(!string.IsNullOrWhiteSpace(dateFormat))
+                        {
+                            // Is this the best way to get milliseconds from double to int?
+                            int msOut = 0;
+                            Int32.TryParse(oTimeStampLTZ.Millisecond.ToString("000").Substring(0,3), out msOut);
+                            DateTime dt = new DateTime(oTimeStampLTZ.Year,oTimeStampLTZ.Month,oTimeStampLTZ.Day,oTimeStampLTZ.Hour,oTimeStampLTZ.Minute,oTimeStampLTZ.Second, msOut);
+                            dateString = dt.ToString(dateFormat);
+                        }
+                        else dateString = oTimeStampLTZ.ToString();
+                    }
+                break;
+                case "OracleTimeStampTZ":
+                    OracleTimeStampTZ oTimeStampTZ = (OracleTimeStampTZ)oracleData;
+                    if(!oTimeStampTZ.IsNull)
+                    {
+                        if(!string.IsNullOrWhiteSpace(dateFormat))
+                        {
+                            // Is this the best way to get milliseconds from double to int?
+                            int msOut = 0;
+                            Int32.TryParse(oTimeStampTZ.Millisecond.ToString("000").Substring(0,3), out msOut);
+                            DateTime dt = new DateTime(oTimeStampTZ.Year,oTimeStampTZ.Month,oTimeStampTZ.Day,oTimeStampTZ.Hour,oTimeStampTZ.Minute,oTimeStampTZ.Second, msOut);
+                            dateString = dt.ToString(dateFormat);
+                        }
+                        else dateString = oTimeStampTZ.ToString();
+                    }
+                break;
+                default:
+                    throw new Exception("Trying to parse unknown date type");
+            }
+            return dateString;
+        }
+
         /// <summary>
         /// Write query results to csv string or file
         /// </summary>
@@ -71,28 +140,19 @@ namespace Frends.Community.Oracle
                                     }
 
                                     await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", decimalString);
-                                    break;
-                                case "OracleDate":
-                                    OracleDate oDate = reader.GetOracleDate(i);
-                                    string dateString = "";
-                                    if(!oDate.IsNull)
-                                    {
-                                        // if(output DateTimeFormat)
-                                        // 
-                                        // else
-                                    }
-                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", dateString);
                                 break;
-                                case "TimeStamp":
-                                case "TimeStampLTZ":
-                                case "TimeStampTZ":
-                                    // Timestamp muunnos, erona OracleDatee, että C# DAteTime muodostuksessa käytetään myös millisekunteja
-                                    // ota arvo var 
+                                case "OracleDate":
+                                case "OracleTimeStamp":
+                                case "OracleTimeStampLTZ":
+                                case "OracleTimeStampTZ":
+                                    string dateString = ParseOracleDate(reader.GetValue(i), reader.GetDataTypeName(i), queryOutput.XmlOutput.DateTimeFomat);
+                                    
+                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", dateString);
                                 break;
 
                                 default:
                                     await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", reader.GetValue(i).ToString());
-                                    break;
+                                break;
                             }
                         }
 
@@ -166,10 +226,18 @@ namespace Frends.Community.Oracle
 
                                     if (!FieldValue.IsNull) await writer.WriteValueAsync((decimal)FieldValue, cancellationToken);
                                     else await writer.WriteValueAsync(string.Empty, cancellationToken);
-                                    break;
+                                break;
+                                case "OracleDate":
+                                case "OracleTimeStamp":
+                                case "OracleTimeStampLTZ":
+                                case "OracleTimeStampTZ":
+                                    string dateString = ParseOracleDate(reader.GetValue(i), reader.GetDataTypeName(i), queryOutput.JsonOutput.DateTimeFomat);
+
+                                    await writer.WriteValueAsync(dateString, cancellationToken);
+                                break;
                                 default:
                                     await writer.WriteValueAsync(reader.GetValue(i) ?? string.Empty, cancellationToken);
-                                    break;
+                                break;
                             }
 
                             cancellationToken.ThrowIfCancellationRequested();
@@ -251,11 +319,20 @@ namespace Frends.Community.Oracle
                                 }
                                 else
                                     fieldValues[i] = decimalValue;
-                                break;
+                            break;
+
+                            case "OracleDate":
+                            case "OracleTimeStamp":
+                            case "OracleTimeStampLTZ":
+                            case "OracleTimeStampTZ":
+                                string dateString = ParseOracleDate(reader.GetValue(i), reader.GetDataTypeName(i), queryOutput.CsvOutput.DateTimeFomat);
+
+                                fieldValues[i] = dateString;
+                            break;
 
                             default:
                                 fieldValues[i] = reader.GetValue(i);
-                                break;
+                            break;
                         }
 
                         string fieldValue = fieldValues[i].ToString();

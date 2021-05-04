@@ -235,8 +235,15 @@ namespace Frends.Community.Oracle
         [DefaultValue("")]
         public string DecimalSeparator { get; set; }
 
-        ///<summary>
+        /// <summary>
+        /// DateTime output format. If empty, uses Oracle default.
+        /// Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types.
         /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("")]
+        public string DateTimeFomat { get; set; }
+
     }
 
     /// <summary>
@@ -249,6 +256,15 @@ namespace Frends.Community.Oracle
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
         public string CultureInfo { get; set; }
+
+        /// <summary>
+        /// DateTime output format. If empty, uses Oracle default.
+        /// Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types.
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("")]
+        public string DateTimeFomat { get; set; }
     }
 
     /// <summary>
@@ -274,6 +290,15 @@ namespace Frends.Community.Oracle
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("")]
         public string DecimalSeparator { get; set; }
+
+        /// <summary>
+        /// DateTime output format. If empty, uses Oracle default.
+        /// Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types.
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("")]
+        public string DateTimeFomat { get; set; }
     }
 
     /// <summary>

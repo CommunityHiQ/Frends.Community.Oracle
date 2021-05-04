@@ -57,6 +57,7 @@ Executes a single query to Oracle database.
 | Path | `bool` | Path where file is written. | `c:\temp\queryOutput.xml` |
 | Encoding | `bool` | Set encoding of file. | `utf-8` |
 | DecimalSeparator | `string` | If set, overwrites default decimal separator in Oracle Decimal type fields with given value | `.` |
+| DateTimeFormat | `string` | DateTime output format. If empty, uses Oracle default. Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types. [DateTime.ToString(format)] (https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_) | `s` |
 
 
 #### Json Output
@@ -66,6 +67,7 @@ Executes a single query to Oracle database.
 | Output to file | `bool` | If true, write output to file, instead returning it. | `true` |
 | Path | `bool` | Path where file is written. | `c:\temp\queryOutput.xml` |
 | Encoding | `bool` | Set encoding of file. | `utf-8` |
+| DateTimeFormat | `string` | DateTime output format. If empty, uses Oracle default. Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types. [DateTime.ToString(format)] (https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_) | `s` |
 
 
 #### Csv Output
@@ -77,6 +79,7 @@ Executes a single query to Oracle database.
 | Path | `bool` | Path where file is written. | `c:\temp\queryOutput.xml` |
 | Encoding | `bool` | Set encoding of file. | `utf-8` |
 | DecimalSeparator | `string` | If set, overwrites default decimal separator in Oracle Decimal type fields with given value | `.` |
+| DateTimeFormat | `string` | DateTime output format. If empty, uses Oracle default. Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types. [DateTime.ToString(format)] (https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_) | `s` |
 
 
 #### Output File
@@ -262,4 +265,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 3.0.0 | Query ranamed and namespace changed to more generic to enable adding new task. Added BatchOperationOracle task. |
 | 3.1.0 | Multiquery tasks added. |
 | 3.1.1 | Connection string fields changed from text fields to password fields now hidden and won't show on logs. Revised README, Detailed logging enabled to TransactionalMultiQuery. |
-| 3.2.0 | Added possibility to overwrite default decimal separator in Decimal typed columns, when using CSV or XML output. |
+| 3.2.0 | Added possibility to overwrite default decimal separator in Decimal typed columns, when using CSV or XML output. Added property for setting DateTime output format. |
