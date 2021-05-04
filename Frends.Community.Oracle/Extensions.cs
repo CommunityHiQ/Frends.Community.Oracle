@@ -31,9 +31,10 @@ namespace Frends.Community.Oracle
             return (TEnum)Enum.Parse(typeof(TEnum), source.ToString(), true);
         }
 
-        private static string ParseOracleDate(OracleDataReader reader, int index, string dateType, string dateFormat)
+        private static string ParseOracleDate(OracleDataReader reader, int index, string dateFormat)
         {
             string dateString = "";
+            string dateType = reader.GetDataTypeName(index);
             switch (dateType)
             {
                 case "Date":
@@ -145,7 +146,7 @@ namespace Frends.Community.Oracle
                                 case "TimeStamp":
                                 case "TimeStampLTZ":
                                 case "TimeStampTZ":
-                                    string dateString = ParseOracleDate(reader,i, reader.GetDataTypeName(i), queryOutput.XmlOutput.DateTimeFomat);
+                                    string dateString = ParseOracleDate(reader,i, queryOutput.XmlOutput.DateTimeFomat);
                                     
                                     await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", dateString);
                                 break;
@@ -231,7 +232,7 @@ namespace Frends.Community.Oracle
                                 case "TimeStamp":
                                 case "TimeStampLTZ":
                                 case "TimeStampTZ":
-                                    string dateString = ParseOracleDate(reader, i, reader.GetDataTypeName(i), queryOutput.JsonOutput.DateTimeFomat);
+                                    string dateString = ParseOracleDate(reader, i, queryOutput.JsonOutput.DateTimeFomat);
 
                                     await writer.WriteValueAsync(dateString, cancellationToken);
                                 break;
@@ -325,7 +326,7 @@ namespace Frends.Community.Oracle
                             case "TimeStamp":
                             case "TimeStampLTZ":
                             case "TimeStampTZ":
-                                string dateString = ParseOracleDate(reader, i, reader.GetDataTypeName(i), queryOutput.CsvOutput.DateTimeFomat);
+                                string dateString = ParseOracleDate(reader, i, queryOutput.CsvOutput.DateTimeFomat);
 
                                 fieldValues[i] = dateString;
                             break;
