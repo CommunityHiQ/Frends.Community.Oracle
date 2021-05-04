@@ -234,6 +234,9 @@ namespace Frends.Community.Oracle
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("")]
         public string DecimalSeparator { get; set; }
+
+        ///<summary>
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
     }
 
     /// <summary>

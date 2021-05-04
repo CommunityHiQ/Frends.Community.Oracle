@@ -72,6 +72,23 @@ namespace Frends.Community.Oracle
 
                                     await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", decimalString);
                                     break;
+                                case "OracleDate":
+                                    OracleDate oDate = reader.GetOracleDate(i);
+                                    string dateString = "";
+                                    if(!oDate.IsNull)
+                                    {
+                                        // if(output DateTimeFormat)
+                                        // 
+                                        // else
+                                    }
+                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", dateString);
+                                break;
+                                case "TimeStamp":
+                                case "TimeStampLTZ":
+                                case "TimeStampTZ":
+                                    // Timestamp muunnos, erona OracleDatee, että C# DAteTime muodostuksessa käytetään myös millisekunteja
+                                    // ota arvo var 
+                                break;
 
                                 default:
                                     await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", reader.GetValue(i).ToString());
