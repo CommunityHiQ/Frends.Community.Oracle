@@ -31,13 +31,13 @@ namespace Frends.Community.Oracle
             return (TEnum)Enum.Parse(typeof(TEnum), source.ToString(), true);
         }
 
-        private static string ParseOracleDate(object oracleData, string dateType, string dateFormat)
+        private static string ParseOracleDate(OracleDataReader reader, int index, string dateType, string dateFormat)
         {
             string dateString = "";
             switch (dateType)
             {
-                case "OracleDate":
-                    OracleDate oDate = (OracleDate)oracleData;
+                case "Date":
+                    OracleDate oDate = reader.GetOracleDate(index);
                     if(!oDate.IsNull)
                     {
                         if(!string.IsNullOrWhiteSpace(dateFormat))
@@ -48,8 +48,8 @@ namespace Frends.Community.Oracle
                         else dateString = oDate.ToString();
                     }
                 break;
-                case "OracleTimeStamp":
-                    OracleTimeStamp oTimeStamp = (OracleTimeStamp)oracleData;
+                case "TimeStamp":
+                    OracleTimeStamp oTimeStamp = reader.GetOracleTimeStamp(index);
                     if(!oTimeStamp.IsNull)
                     {
                         if(!string.IsNullOrWhiteSpace(dateFormat))
@@ -63,8 +63,8 @@ namespace Frends.Community.Oracle
                         else dateString = oTimeStamp.ToString();
                     }
                 break;
-                case "OracleTimeStampLTZ":
-                    OracleTimeStampLTZ oTimeStampLTZ = (OracleTimeStampLTZ)oracleData;
+                case "TimeStampLTZ":
+                    OracleTimeStampLTZ oTimeStampLTZ = reader.GetOracleTimeStampLTZ(index);
                     if(!oTimeStampLTZ.IsNull)
                     {
                         if(!string.IsNullOrWhiteSpace(dateFormat))
@@ -78,8 +78,8 @@ namespace Frends.Community.Oracle
                         else dateString = oTimeStampLTZ.ToString();
                     }
                 break;
-                case "OracleTimeStampTZ":
-                    OracleTimeStampTZ oTimeStampTZ = (OracleTimeStampTZ)oracleData;
+                case "TimeStampTZ":
+                    OracleTimeStampTZ oTimeStampTZ = reader.GetOracleTimeStampTZ(index);
                     if(!oTimeStampTZ.IsNull)
                     {
                         if(!string.IsNullOrWhiteSpace(dateFormat))
@@ -141,11 +141,11 @@ namespace Frends.Community.Oracle
 
                                     await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", decimalString);
                                 break;
-                                case "OracleDate":
-                                case "OracleTimeStamp":
-                                case "OracleTimeStampLTZ":
-                                case "OracleTimeStampTZ":
-                                    string dateString = ParseOracleDate(reader.GetValue(i), reader.GetDataTypeName(i), queryOutput.XmlOutput.DateTimeFomat);
+                                case "Date":
+                                case "TimeStamp":
+                                case "TimeStampLTZ":
+                                case "TimeStampTZ":
+                                    string dateString = ParseOracleDate(reader,i, reader.GetDataTypeName(i), queryOutput.XmlOutput.DateTimeFomat);
                                     
                                     await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", dateString);
                                 break;
@@ -227,11 +227,11 @@ namespace Frends.Community.Oracle
                                     if (!FieldValue.IsNull) await writer.WriteValueAsync((decimal)FieldValue, cancellationToken);
                                     else await writer.WriteValueAsync(string.Empty, cancellationToken);
                                 break;
-                                case "OracleDate":
-                                case "OracleTimeStamp":
-                                case "OracleTimeStampLTZ":
-                                case "OracleTimeStampTZ":
-                                    string dateString = ParseOracleDate(reader.GetValue(i), reader.GetDataTypeName(i), queryOutput.JsonOutput.DateTimeFomat);
+                                case "Date":
+                                case "TimeStamp":
+                                case "TimeStampLTZ":
+                                case "TimeStampTZ":
+                                    string dateString = ParseOracleDate(reader, i, reader.GetDataTypeName(i), queryOutput.JsonOutput.DateTimeFomat);
 
                                     await writer.WriteValueAsync(dateString, cancellationToken);
                                 break;
@@ -321,11 +321,11 @@ namespace Frends.Community.Oracle
                                     fieldValues[i] = decimalValue;
                             break;
 
-                            case "OracleDate":
-                            case "OracleTimeStamp":
-                            case "OracleTimeStampLTZ":
-                            case "OracleTimeStampTZ":
-                                string dateString = ParseOracleDate(reader.GetValue(i), reader.GetDataTypeName(i), queryOutput.CsvOutput.DateTimeFomat);
+                            case "Date":
+                            case "TimeStamp":
+                            case "TimeStampLTZ":
+                            case "TimeStampTZ":
+                                string dateString = ParseOracleDate(reader, i, reader.GetDataTypeName(i), queryOutput.CsvOutput.DateTimeFomat);
 
                                 fieldValues[i] = dateString;
                             break;
