@@ -56,23 +56,26 @@ namespace Frends.Community.Oracle
 
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            if (reader.GetDataTypeName(i).Equals("Decimal"))
+                            switch (reader.GetDataTypeName(i))
                             {
-                                OracleDecimal v = reader.GetOracleDecimal(i);
-                                OracleDecimal decimalValue = OracleDecimal.SetPrecision(v, 28);
-                                string decimalString = decimalValue.ToString();
-                                // Is decimal separator overwrite value given and query result value is not null?
-                                if (!string.IsNullOrWhiteSpace(queryOutput.XmlOutput.DecimalSeparator))
-                                {
-                                    decimalString = decimalString
-                                        .Replace(".", queryOutput.XmlOutput.DecimalSeparator)
-                                        .Replace(",", queryOutput.XmlOutput.DecimalSeparator);
-                                }
+                                case "Decimal":
+                                    OracleDecimal v = reader.GetOracleDecimal(i);
+                                    OracleDecimal decimalValue = OracleDecimal.SetPrecision(v, 28);
+                                    string decimalString = decimalValue.ToString();
+                                    // Is decimal separator overwrite value given and query result value is not null?
+                                    if (!string.IsNullOrWhiteSpace(queryOutput.XmlOutput.DecimalSeparator))
+                                    {
+                                        decimalString = decimalString
+                                            .Replace(".", queryOutput.XmlOutput.DecimalSeparator)
+                                            .Replace(",", queryOutput.XmlOutput.DecimalSeparator);
+                                    }
 
-                                await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", decimalString);
-                            }
-                            else {
-                                await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", reader.GetValue(i).ToString());
+                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", decimalString);
+                                    break;
+
+                                default:
+                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", reader.GetValue(i).ToString());
+                                    break;
                             }
                         }
 
@@ -217,23 +220,25 @@ namespace Frends.Community.Oracle
                     var fieldValues = new object[reader.FieldCount];
                     for (int i = 0; i < reader.FieldCount; i++)
                     {
-                        if (reader.GetDataTypeName(i).Equals("Decimal"))
+                        switch (reader.GetDataTypeName(i))
                         {
-                            OracleDecimal v = reader.GetOracleDecimal(i);
-                            OracleDecimal decimalValue= OracleDecimal.SetPrecision(v, 28);
-                            // Is decimal separator overwrite value given and query result value is not null?
-                            if (!string.IsNullOrWhiteSpace(queryOutput.CsvOutput.DecimalSeparator) && !decimalValue.IsNull)
-                            {
-                                fieldValues[i] = decimalValue.ToString()
-                                    .Replace(".", queryOutput.CsvOutput.DecimalSeparator)
-                                    .Replace(",", queryOutput.CsvOutput.DecimalSeparator);
-                            }
-                            else
-                                fieldValues[i] = decimalValue;
-                        }
-                        else
-                        {
-                            fieldValues[i] = reader.GetValue(i);
+                            case "Decimal":
+                                OracleDecimal v = reader.GetOracleDecimal(i);
+                                OracleDecimal decimalValue= OracleDecimal.SetPrecision(v, 28);
+                                // Is decimal separator overwrite value given and query result value is not null?
+                                if (!string.IsNullOrWhiteSpace(queryOutput.CsvOutput.DecimalSeparator) && !decimalValue.IsNull)
+                                {
+                                    fieldValues[i] = decimalValue.ToString()
+                                        .Replace(".", queryOutput.CsvOutput.DecimalSeparator)
+                                        .Replace(",", queryOutput.CsvOutput.DecimalSeparator);
+                                }
+                                else
+                                    fieldValues[i] = decimalValue;
+                                break;
+
+                            default:
+                                fieldValues[i] = reader.GetValue(i);
+                                break;
                         }
 
                         string fieldValue = fieldValues[i].ToString();
