@@ -241,7 +241,7 @@ namespace Frends.Community.Oracle
         /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
-        [DefaultValue("")]
+        [DefaultValue("s")]
         public string DateTimeFomat { get; set; }
 
     }
@@ -263,7 +263,7 @@ namespace Frends.Community.Oracle
         /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
-        [DefaultValue("")]
+        [DefaultValue("s")]
         public string DateTimeFomat { get; set; }
     }
 
@@ -297,7 +297,7 @@ namespace Frends.Community.Oracle
         /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
-        [DefaultValue("")]
+        [DefaultValue("s")]
         public string DateTimeFomat { get; set; }
     }
 

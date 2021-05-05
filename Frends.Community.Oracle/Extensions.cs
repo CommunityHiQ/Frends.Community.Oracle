@@ -33,65 +33,52 @@ namespace Frends.Community.Oracle
 
         private static string ParseOracleDate(OracleDataReader reader, int index, string dateFormat)
         {
-            string dateString = "";
+            if(string.IsNullOrWhiteSpace(dateFormat)) return reader.GetValue(index).ToString();
+
             string dateType = reader.GetDataTypeName(index);
+            string dateString = ""; // formatted output date
+            
             switch (dateType)
             {
                 case "Date":
                     OracleDate oDate = reader.GetOracleDate(index);
                     if(!oDate.IsNull)
                     {
-                        if(!string.IsNullOrWhiteSpace(dateFormat))
-                        {
-                            DateTime dt = new DateTime(oDate.Year,oDate.Month,oDate.Day,oDate.Hour,oDate.Minute,oDate.Second);
-                            dateString = dt.ToString(dateFormat);
-                        }
-                        else dateString = oDate.ToString();
+                        DateTime dt = new DateTime(oDate.Year,oDate.Month,oDate.Day,oDate.Hour,oDate.Minute,oDate.Second);
+                        dateString = dt.ToString(dateFormat);
                     }
                 break;
                 case "TimeStamp":
                     OracleTimeStamp oTimeStamp = reader.GetOracleTimeStamp(index);
                     if(!oTimeStamp.IsNull)
                     {
-                        if(!string.IsNullOrWhiteSpace(dateFormat))
-                        {
-                            // Is this the best way to get milliseconds from double to int?
-                            int msOut = 0;
-                            Int32.TryParse(oTimeStamp.Millisecond.ToString("000").Substring(0,3), out msOut);
-                            DateTime dt = new DateTime(oTimeStamp.Year,oTimeStamp.Month,oTimeStamp.Day,oTimeStamp.Hour,oTimeStamp.Minute,oTimeStamp.Second, msOut);
-                            dateString = dt.ToString(dateFormat);
-                        }
-                        else dateString = oTimeStamp.ToString();
+                        // Is this the best way to get milliseconds from double to int?
+                        int msOut = 0;
+                        Int32.TryParse(oTimeStamp.Millisecond.ToString("000").Substring(0,3), out msOut);
+                        DateTime dt = new DateTime(oTimeStamp.Year, oTimeStamp.Month, oTimeStamp.Day, oTimeStamp.Hour, oTimeStamp.Minute, oTimeStamp.Second, msOut);
+                        dateString = dt.ToString(dateFormat);
                     }
                 break;
                 case "TimeStampLTZ":
                     OracleTimeStampLTZ oTimeStampLTZ = reader.GetOracleTimeStampLTZ(index);
                     if(!oTimeStampLTZ.IsNull)
                     {
-                        if(!string.IsNullOrWhiteSpace(dateFormat))
-                        {
-                            // Is this the best way to get milliseconds from double to int?
-                            int msOut = 0;
-                            Int32.TryParse(oTimeStampLTZ.Millisecond.ToString("000").Substring(0,3), out msOut);
-                            DateTime dt = new DateTime(oTimeStampLTZ.Year,oTimeStampLTZ.Month,oTimeStampLTZ.Day,oTimeStampLTZ.Hour,oTimeStampLTZ.Minute,oTimeStampLTZ.Second, msOut);
-                            dateString = dt.ToString(dateFormat);
-                        }
-                        else dateString = oTimeStampLTZ.ToString();
+                        // Is this the best way to get milliseconds from double to int?
+                        int msOut = 0;
+                        Int32.TryParse(oTimeStampLTZ.Millisecond.ToString("000").Substring(0,3), out msOut);
+                        DateTime dt = new DateTime(oTimeStampLTZ.Year, oTimeStampLTZ.Month, oTimeStampLTZ.Day, oTimeStampLTZ.Hour, oTimeStampLTZ.Minute, oTimeStampLTZ.Second, msOut);
+                        dateString = dt.ToString(dateFormat);
                     }
                 break;
                 case "TimeStampTZ":
                     OracleTimeStampTZ oTimeStampTZ = reader.GetOracleTimeStampTZ(index);
                     if(!oTimeStampTZ.IsNull)
                     {
-                        if(!string.IsNullOrWhiteSpace(dateFormat))
-                        {
-                            // Is this the best way to get milliseconds from double to int?
-                            int msOut = 0;
-                            Int32.TryParse(oTimeStampTZ.Millisecond.ToString("000").Substring(0,3), out msOut);
-                            DateTime dt = new DateTime(oTimeStampTZ.Year,oTimeStampTZ.Month,oTimeStampTZ.Day,oTimeStampTZ.Hour,oTimeStampTZ.Minute,oTimeStampTZ.Second, msOut);
-                            dateString = dt.ToString(dateFormat);
-                        }
-                        else dateString = oTimeStampTZ.ToString();
+                        // Is this the best way to get milliseconds from double to int?
+                        int msOut = 0;
+                        Int32.TryParse(oTimeStampTZ.Millisecond.ToString("000").Substring(0,3), out msOut);
+                        DateTime dt = new DateTime(oTimeStampTZ.Year, oTimeStampTZ.Month, oTimeStampTZ.Day, oTimeStampTZ.Hour, oTimeStampTZ.Minute, oTimeStampTZ.Second, msOut);
+                        dateString = dt.ToString(dateFormat);
                     }
                 break;
                 default:
@@ -146,8 +133,9 @@ namespace Frends.Community.Oracle
                                 case "TimeStamp":
                                 case "TimeStampLTZ":
                                 case "TimeStampTZ":
-                                    string dateString = ParseOracleDate(reader,i, queryOutput.XmlOutput.DateTimeFomat);
-                                    
+                                    string dateString = ParseOracleDate(reader,
+                                                                        i,
+                                                                        queryOutput.XmlOutput.DateTimeFomat);
                                     await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", dateString);
                                 break;
 
