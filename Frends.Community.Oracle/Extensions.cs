@@ -325,6 +325,9 @@ namespace Frends.Community.Oracle
                         }
 
                         string fieldValue = fieldValues[i].ToString();
+                        // remove possible line breaks
+                        fieldValue = fieldValue.Replace("\r\n"," ").Replace("\n"," ").Replace("\r"," ");
+
                         sb.Append(fieldValue);
                         if (i < reader.FieldCount - 1)
                         {
