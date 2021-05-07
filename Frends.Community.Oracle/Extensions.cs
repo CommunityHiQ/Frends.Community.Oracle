@@ -30,6 +30,63 @@ namespace Frends.Community.Oracle
         {
             return (TEnum)Enum.Parse(typeof(TEnum), source.ToString(), true);
         }
+
+        private static string ParseOracleDate(OracleDataReader reader, int index, string dateFormat)
+        {
+            if(string.IsNullOrWhiteSpace(dateFormat)) return reader.GetValue(index).ToString();
+
+            string dateType = reader.GetDataTypeName(index);
+            string dateString = ""; // formatted output date
+            
+            switch (dateType)
+            {
+                case "Date":
+                    OracleDate oDate = reader.GetOracleDate(index);
+                    if(!oDate.IsNull)
+                    {
+                        DateTime dt = new DateTime(oDate.Year,oDate.Month,oDate.Day,oDate.Hour,oDate.Minute,oDate.Second);
+                        dateString = dt.ToString(dateFormat);
+                    }
+                break;
+                case "TimeStamp":
+                    OracleTimeStamp oTimeStamp = reader.GetOracleTimeStamp(index);
+                    if(!oTimeStamp.IsNull)
+                    {
+                        // Is this the best way to get milliseconds from double to int?
+                        int msOut = 0;
+                        Int32.TryParse(oTimeStamp.Millisecond.ToString("000").Substring(0,3), out msOut);
+                        DateTime dt = new DateTime(oTimeStamp.Year, oTimeStamp.Month, oTimeStamp.Day, oTimeStamp.Hour, oTimeStamp.Minute, oTimeStamp.Second, msOut);
+                        dateString = dt.ToString(dateFormat);
+                    }
+                break;
+                case "TimeStampLTZ":
+                    OracleTimeStampLTZ oTimeStampLTZ = reader.GetOracleTimeStampLTZ(index);
+                    if(!oTimeStampLTZ.IsNull)
+                    {
+                        // Is this the best way to get milliseconds from double to int?
+                        int msOut = 0;
+                        Int32.TryParse(oTimeStampLTZ.Millisecond.ToString("000").Substring(0,3), out msOut);
+                        DateTime dt = new DateTime(oTimeStampLTZ.Year, oTimeStampLTZ.Month, oTimeStampLTZ.Day, oTimeStampLTZ.Hour, oTimeStampLTZ.Minute, oTimeStampLTZ.Second, msOut);
+                        dateString = dt.ToString(dateFormat);
+                    }
+                break;
+                case "TimeStampTZ":
+                    OracleTimeStampTZ oTimeStampTZ = reader.GetOracleTimeStampTZ(index);
+                    if(!oTimeStampTZ.IsNull)
+                    {
+                        // Is this the best way to get milliseconds from double to int?
+                        int msOut = 0;
+                        Int32.TryParse(oTimeStampTZ.Millisecond.ToString("000").Substring(0,3), out msOut);
+                        DateTime dt = new DateTime(oTimeStampTZ.Year, oTimeStampTZ.Month, oTimeStampTZ.Day, oTimeStampTZ.Hour, oTimeStampTZ.Minute, oTimeStampTZ.Second, msOut);
+                        dateString = dt.ToString(dateFormat);
+                    }
+                break;
+                default:
+                    throw new Exception("Trying to parse unknown date type");
+            }
+            return dateString;
+        }
+
         /// <summary>
         /// Write query results to csv string or file
         /// </summary>
@@ -56,7 +113,36 @@ namespace Frends.Community.Oracle
 
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", reader.GetValue(i).ToString());
+                            switch (reader.GetDataTypeName(i))
+                            {
+                                case "Decimal":
+                                    OracleDecimal v = reader.GetOracleDecimal(i);
+                                    OracleDecimal decimalValue = OracleDecimal.SetPrecision(v, 28);
+                                    string decimalString = decimalValue.ToString();
+                                    // Is decimal separator overwrite value given and query result value is not null?
+                                    if (!string.IsNullOrWhiteSpace(queryOutput.XmlOutput.DecimalSeparator))
+                                    {
+                                        decimalString = decimalString
+                                            .Replace(".", queryOutput.XmlOutput.DecimalSeparator)
+                                            .Replace(",", queryOutput.XmlOutput.DecimalSeparator);
+                                    }
+
+                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", decimalString);
+                                break;
+                                case "Date":
+                                case "TimeStamp":
+                                case "TimeStampLTZ":
+                                case "TimeStampTZ":
+                                    string dateString = ParseOracleDate(reader,
+                                                                        i,
+                                                                        queryOutput.XmlOutput.DateTimeFomat);
+                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", dateString);
+                                break;
+
+                                default:
+                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", reader.GetValue(i).ToString());
+                                break;
+                            }
                         }
 
                         // close single row element container
@@ -129,10 +215,18 @@ namespace Frends.Community.Oracle
 
                                     if (!FieldValue.IsNull) await writer.WriteValueAsync((decimal)FieldValue, cancellationToken);
                                     else await writer.WriteValueAsync(string.Empty, cancellationToken);
-                                    break;
+                                break;
+                                case "Date":
+                                case "TimeStamp":
+                                case "TimeStampLTZ":
+                                case "TimeStampTZ":
+                                    string dateString = ParseOracleDate(reader, i, queryOutput.JsonOutput.DateTimeFomat);
+
+                                    await writer.WriteValueAsync(dateString, cancellationToken);
+                                break;
                                 default:
                                     await writer.WriteValueAsync(reader.GetValue(i) ?? string.Empty, cancellationToken);
-                                    break;
+                                break;
                             }
 
                             cancellationToken.ThrowIfCancellationRequested();
@@ -200,17 +294,40 @@ namespace Frends.Community.Oracle
                     var fieldValues = new object[reader.FieldCount];
                     for (int i = 0; i < reader.FieldCount; i++)
                     {
-                        if (reader.GetDataTypeName(i).Equals("Decimal"))
+                        switch (reader.GetDataTypeName(i))
                         {
-                            OracleDecimal v = reader.GetOracleDecimal(i);
-                            fieldValues[i] = OracleDecimal.SetPrecision(v, 28);
-                        }
-                        else
-                        {
-                            fieldValues[i] = reader.GetValue(i);
+                            case "Decimal":
+                                OracleDecimal v = reader.GetOracleDecimal(i);
+                                OracleDecimal decimalValue= OracleDecimal.SetPrecision(v, 28);
+                                // Is decimal separator overwrite value given and query result value is not null?
+                                if (!string.IsNullOrWhiteSpace(queryOutput.CsvOutput.DecimalSeparator) && !decimalValue.IsNull)
+                                {
+                                    fieldValues[i] = decimalValue.ToString()
+                                        .Replace(".", queryOutput.CsvOutput.DecimalSeparator)
+                                        .Replace(",", queryOutput.CsvOutput.DecimalSeparator);
+                                }
+                                else
+                                    fieldValues[i] = decimalValue;
+                            break;
+
+                            case "Date":
+                            case "TimeStamp":
+                            case "TimeStampLTZ":
+                            case "TimeStampTZ":
+                                string dateString = ParseOracleDate(reader, i, queryOutput.CsvOutput.DateTimeFomat);
+
+                                fieldValues[i] = dateString;
+                            break;
+
+                            default:
+                                fieldValues[i] = reader.GetValue(i);
+                            break;
                         }
 
                         string fieldValue = fieldValues[i].ToString();
+                        // remove possible line breaks
+                        fieldValue = fieldValue.Replace("\r\n"," ").Replace("\n"," ").Replace("\r"," ");
+
                         sb.Append(fieldValue);
                         if (i < reader.FieldCount - 1)
                         {

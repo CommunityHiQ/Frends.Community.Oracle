@@ -227,6 +227,23 @@ namespace Frends.Community.Oracle
         /// </summary>
         [DefaultValue(-1)]
         public int MaxmimumRows { get; set; }
+
+        /// <summary>
+        /// Overwrite decimal value separator in Decimal type columns. If empty, uses Oracle default.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("")]
+        public string DecimalSeparator { get; set; }
+
+        /// <summary>
+        /// DateTime output format. If empty, uses Oracle default.
+        /// Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types.
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("s")]
+        public string DateTimeFomat { get; set; }
+
     }
 
     /// <summary>
@@ -239,6 +256,15 @@ namespace Frends.Community.Oracle
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
         public string CultureInfo { get; set; }
+
+        /// <summary>
+        /// DateTime output format. If empty, uses Oracle default.
+        /// Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types.
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("s")]
+        public string DateTimeFomat { get; set; }
     }
 
     /// <summary>
@@ -257,6 +283,22 @@ namespace Frends.Community.Oracle
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue(";")]
         public string CsvSeparator { get; set; }
+
+        /// <summary>
+        /// Overwrite decimal value separator in Decimal type columns. If empty, uses Oracle default.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("")]
+        public string DecimalSeparator { get; set; }
+
+        /// <summary>
+        /// DateTime output format. If empty, uses Oracle default.
+        /// Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types.
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("s")]
+        public string DateTimeFomat { get; set; }
     }
 
     /// <summary>
