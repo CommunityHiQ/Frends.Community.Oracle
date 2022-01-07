@@ -4,7 +4,7 @@ FRENDS tasks for querying data and executing data modifications on Oracle databa
 Multitasks allow you to execute more than one query in the same transaction and get the results of each query without any temporary tables and need to compose the transaction into the statement.
 
 [![Actions Status](https://github.com/CommunityHiQ/Frends.Community.Oracle/workflows/PackAndPushAfterMerge/badge.svg)](https://github.com/CommunityHiQ/Frends.Community.Oracle/actions) ![MyGet](https://img.shields.io/myget/frends-community/v/Frends.Community.Oracle) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
-
+trigger
 - [Installing](#installing)
 - [Task](#tasks)
 	- [ExecuteQueryOracle](#ExecuteQueryOracle)
