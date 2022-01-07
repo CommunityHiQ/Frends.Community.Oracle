@@ -1,7 +1,5 @@
 ﻿using NUnit.Framework;
-using NUnit.Framework.Constraints;
 using Oracle.ManagedDataAccess.Client;
-using Oracle.ManagedDataAccess.Types;
 using System;
 using System.IO;
 using System.Threading;
@@ -9,16 +7,12 @@ using System.Threading.Tasks;
 
 namespace Frends.Community.Oracle.Query.Tests
 {
-    /// <summary>
-    /// THESE TESTS DO NOT WORK UNLESS YOU INSTALL ORACLE LOCALLY ON YOUR OWN COMPUTER!
-    /// </summary>
     [TestFixture]
-    [Ignore("For some reason timeouts on build server")]
     public class OracleTests
     {
-        // Problems with local oracle, tests not implemented yet
-        public string ConnectionString = Environment.GetEnvironmentVariable("HIQ_ORACLEDB_CONNECTIONSTRING");
-        public int TimeoutSeconds = 900;
+        private readonly string ConnectionString = Environment.GetEnvironmentVariable("HIQ_ORACLEDB_CONNECTIONSTRING");
+        private readonly string outputDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../TestOut/");
+        private readonly string expectedFileDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../ExpectedResults/");
 
         [OneTimeSetUp]
         public async Task OneTimeSetUp()
@@ -81,6 +75,7 @@ namespace Frends.Community.Oracle.Query.Tests
                 }
 
             }
+            Directory.CreateDirectory(outputDirectory);
         }
 
         [OneTimeTearDown]
@@ -124,6 +119,11 @@ namespace Frends.Community.Oracle.Query.Tests
                 }
 
             }
+            foreach (var file in Directory.GetFiles(outputDirectory, "*"))
+            {
+                File.Delete(outputDirectory + file);
+            }
+            Directory.Delete(outputDirectory);
         }
 
         [Test]
@@ -142,19 +142,9 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
-
-            Assert.AreEqual(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<items>
-  <item>
-    <NAME>hodor</NAME>
-    <VALUE>123</VALUE>
-  </item>
-  <item>
-    <NAME>jon</NAME>
-    <VALUE>321</VALUE>
-  </item>
-</items>", result.Result);
+            var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
+            var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedUtf16Xml.xml"));
+            Assert.AreEqual(expected, result.Result);
         }
 
         [Test]
@@ -173,32 +163,21 @@ namespace Frends.Community.Oracle.Query.Tests
                 OutputToFile = true,
                 OutputFile = new OutputFileProperties
                 {
-                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".xml")
+                    Path = Path.Combine(outputDirectory, Guid.NewGuid().ToString() + ".xml")
                 }
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
+            var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(result.Result), "should have created xml queryOutput file");
-            Assert.AreEqual(
-                @"<?xml version=""1.0"" encoding=""utf-8""?>
-<items>
-  <item>
-    <name>hodor</name>
-    <value>123</value>
-  </item>
-  <item>
-    <name>jon</name>
-    <value>321</value>
-  </item>
-</items>",
-                File.ReadAllText(result.Result));
+            var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedUtf8Xml.xml"));
+            Assert.AreEqual(expected, File.ReadAllText(result.Result));
             File.Delete(result.Result);
         }
 
         /// <summary>
-        /// A simple query that fetches a decimal value from the database
+        /// A simple query that fetches a decimal value from the database.
         /// </summary>
         [Test]
         [Category("Json tests")]
@@ -212,7 +191,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.ExecuteQueryOracle(queryProperties, outputProperties, options, new CancellationToken());
+            var result = await OracleTasks.ExecuteQueryOracle(queryProperties, outputProperties, options, new CancellationToken());
 
             Assert.AreNotEqual("", result.Result);
             Assert.AreEqual(true, result.Success);
@@ -231,18 +210,9 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
-
-            Assert.IsTrue(string.Equals(result.Result, @"[
-  {
-    ""name"": ""hodor"",
-    ""value"": 123
-  },
-  {
-    ""name"": ""jon"",
-    ""value"": 321
-  }
-]"));
+            var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
+            var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedJson.json"));
+            Assert.AreEqual(expected, result.Result);
         }
 
         [Test]
@@ -257,25 +227,16 @@ namespace Frends.Community.Oracle.Query.Tests
                 OutputToFile = true,
                 OutputFile = new OutputFileProperties
                 {
-                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                    Path = Path.Combine(outputDirectory, Guid.NewGuid().ToString() + ".json")
                 }
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
+            var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(result.Result), "should have created json outputfile");
-            Assert.AreEqual(@"[
-  {
-    ""name"": ""hodor"",
-    ""value"": 123
-  },
-  {
-    ""name"": ""jon"",
-    ""value"": 321
-  }
-]",
-                File.ReadAllText(result.Result));
+            var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedJson.json"));
+            Assert.AreEqual(expected, File.ReadAllText(result.Result));
             File.Delete(result.Result);
         }
 
@@ -295,7 +256,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
+            var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
             StringAssert.IsMatch(result.Result, "name;value\r\nhodor;123\r\njon;321\r\n");
         }
@@ -316,12 +277,12 @@ namespace Frends.Community.Oracle.Query.Tests
                 OutputToFile = true,
                 OutputFile = new OutputFileProperties
                 {
-                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".csv")
+                    Path = Path.Combine(outputDirectory, Guid.NewGuid().ToString() + ".csv")
                 }
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
+            var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(result.Result), "should have created csv queryOutput file");
             File.Delete(result.Result);
@@ -332,8 +293,6 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task IsolationTest1()
         {
             var q = new QueryProperties { Query = "select * from InsertTest", ConnectionString = ConnectionString };
-
-
 
             var o = new QueryOutputProperties
             {
@@ -346,12 +305,13 @@ namespace Frends.Community.Oracle.Query.Tests
                 OutputToFile = false,
             };
 
-            var options = new QueryOptions();
-            options.ThrowErrorOnFailure = true;
-            options.IsolationLevel = Oracle_IsolationLevel.ReadCommitted;
+            var options = new QueryOptions
+            {
+                ThrowErrorOnFailure = true,
+                IsolationLevel = Oracle_IsolationLevel.ReadCommitted
+            };
 
-
-            Output result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
+            var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
             Assert.AreEqual(result.Result, "NAME;SENDSTATUS\r\nHan_1;0\r\n");
 
         }
@@ -380,11 +340,13 @@ namespace Frends.Community.Oracle.Query.Tests
                 OutputToFile = false,
             };
 
-            var options = new QueryOptions();
-            options.ThrowErrorOnFailure = true;
-            options.IsolationLevel = Oracle_IsolationLevel.None;
-            Output result = new Output();
-            Output result_debug = new Output();
+            var options = new QueryOptions
+            {
+                ThrowErrorOnFailure = true,
+                IsolationLevel = Oracle_IsolationLevel.None
+            };
+            var result = new Output();
+            var result_debug = new Output();
             var ex_string = "";
 
             try
@@ -421,11 +383,13 @@ namespace Frends.Community.Oracle.Query.Tests
                 ConnectionString = ConnectionString
             };
 
-            var options = new BatchOptions();
-            options.ThrowErrorOnFailure = true;
-            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+            var options = new BatchOptions
+            {
+                ThrowErrorOnFailure = true,
+                IsolationLevel = Oracle_IsolationLevel.Serializable
+            };
 
-            BatchOperationOutput batch_output = new BatchOperationOutput();
+            BatchOperationOutput batch_output;
 
             try
             {
@@ -436,7 +400,7 @@ namespace Frends.Community.Oracle.Query.Tests
                 throw ee;
             }
 
-            //ExecuteQueryOracle rows from db, should be 2.
+            // ExecuteQueryOracle rows from db, should be 2.
             var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Csv,
@@ -459,7 +423,7 @@ namespace Frends.Community.Oracle.Query.Tests
         }
 
         /// <summary>
-        /// Two simple select querys to the database
+        /// Two simple select querys to the database.
         /// </summary>
         [Test]
         [Category("MultiqueryTests")]
@@ -473,14 +437,14 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+            var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.AreNotEqual("", result.Results);
             Assert.AreEqual(true, result.Success);
         }
 
         /// <summary>
-        /// Two simple select querys to the db with isolationlevel = serializable
+        /// Two simple select querys to the db with isolationlevel = serializable.
         /// </summary>
         [Test]
         [Category("MultiqueryTests")]
@@ -502,14 +466,14 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true, IsolationLevel = Oracle_IsolationLevel.Serializable };
 
-            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+            var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.AreEqual(result.Results.First?["Output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
             Assert.AreEqual(true, result.Success);
         }
 
         /// <summary>
-        /// Check if corrupted query is rolled back
+        /// Check if corrupted query is rolled back.
         /// </summary>
         [Test]
         [Category("MultiqueryTests")]
@@ -528,7 +492,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true, IsolationLevel = Oracle_IsolationLevel.Serializable };
 
-            MultiQueryOutput result = new MultiQueryOutput();
+            var result = new MultiQueryOutput();
 
             try
             {
@@ -548,7 +512,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
             var options2 = new QueryOptions { ThrowErrorOnFailure = true };
 
-            MultiQueryOutput result2 = await OracleTasks.TransactionalMultiQuery(multiQueryProperties2, outputProperties2, options2, new CancellationToken());
+            var result2 = await OracleTasks.TransactionalMultiQuery(multiQueryProperties2, outputProperties2, options2, new CancellationToken());
 
             Assert.That(() => OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken()), Throws.TypeOf<OracleException>());
             Assert.AreEqual(false, result.Success);
@@ -574,12 +538,12 @@ namespace Frends.Community.Oracle.Query.Tests
                 OutputToFile = true,
                 OutputFile = new OutputFileProperties
                 {
-                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                    Path = Path.Combine(outputDirectory, Guid.NewGuid().ToString() + ".json")
                 }
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+            var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
             Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
@@ -609,12 +573,12 @@ namespace Frends.Community.Oracle.Query.Tests
                 OutputToFile = true,
                 OutputFile = new OutputFileProperties
                 {
-                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                    Path = Path.Combine(outputDirectory, Guid.NewGuid().ToString() + ".json")
                 }
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+            var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
             Assert.IsTrue(File.ReadAllText(result.Results.First?["OutputPath"]?.ToString()).Contains("1.123456789123456789123456789"));
@@ -642,12 +606,12 @@ namespace Frends.Community.Oracle.Query.Tests
                 },
                 OutputFile = new OutputFileProperties
                 {
-                    Path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".json")
+                    Path = Path.Combine(outputDirectory, Guid.NewGuid().ToString() + ".json")
                 }
             };
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
-            MultiQueryOutput result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
+            var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.IsTrue(File.Exists(outputProperties.OutputFile.Path));
             Assert.IsTrue(File.ReadAllText(result.Results.First?["OutputPath"]?.ToString()).Contains("<DECIMALVALUE>1.12345678912345678912345678912345678</DECIMALVALUE>"));
@@ -669,11 +633,13 @@ namespace Frends.Community.Oracle.Query.Tests
                 ConnectionString = ConnectionString
             };
 
-            var options = new BatchOptions();
-            options.ThrowErrorOnFailure = true;
-            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+            var options = new BatchOptions
+            {
+                ThrowErrorOnFailure = true,
+                IsolationLevel = Oracle_IsolationLevel.Serializable
+            };
 
-            MultiBatchOperationOutput output = new MultiBatchOperationOutput();
+            MultiBatchOperationOutput output;
 
             try
             {
@@ -701,7 +667,7 @@ namespace Frends.Community.Oracle.Query.Tests
         }
 
         /// <summary>
-        /// Check if corrupted query is rolled back
+        /// Check if corrupted query is rolled back.
         /// </summary>
         [Test]
         [Category("MultiqueryTests")]
@@ -719,9 +685,11 @@ namespace Frends.Community.Oracle.Query.Tests
                 ConnectionString = ConnectionString
             };
 
-            var options = new BatchOptions();
-            options.ThrowErrorOnFailure = true;
-            options.IsolationLevel = Oracle_IsolationLevel.Serializable;
+            var options = new BatchOptions
+            {
+                ThrowErrorOnFailure = true,
+                IsolationLevel = Oracle_IsolationLevel.Serializable
+            };
 
             MultiBatchOperationOutput output = new MultiBatchOperationOutput();
 

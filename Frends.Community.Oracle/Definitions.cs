@@ -1,9 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Data;
 using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using System;
 
 #pragma warning disable 1591
 
@@ -12,7 +9,7 @@ namespace Frends.Community.Oracle
     public enum QueryReturnType { Json, Xml, Csv };
 
     /// <summary>
-    /// Enumerator representing oracle parameter data types
+    /// Enumerator representing oracle parameter data types.
     /// </summary>
     public enum QueryParameterType
     {
@@ -26,12 +23,12 @@ namespace Frends.Community.Oracle
         public string Query { get; set; }
 
         /// <summary>
-        /// Parameters for the database query
+        /// Parameters for the database query.
         /// </summary>
         public QueryParameter[] Parameters { get; set; }
 
         /// <summary>
-        /// Oracle connection string
+        /// Oracle connection string.
         /// </summary>
         [PasswordPropertyText]
         [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
@@ -41,21 +38,21 @@ namespace Frends.Community.Oracle
     public class QueryParameter
     {
         /// <summary>
-        /// The name of the parameter
+        /// The name of the parameter.
         /// </summary>
         [DefaultValue("ParameterName")]
         [DisplayFormat(DataFormatString = "Text")]
         public string Name { get; set; }
 
         /// <summary>
-        /// The value of the parameter
+        /// The value of the parameter.
         /// </summary>
         [DefaultValue("Parameter value")]
         [DisplayFormat(DataFormatString = "Text")]
         public dynamic Value { get; set; }
 
         /// <summary>
-        /// The type of the parameter
+        /// The type of the parameter.
         /// </summary>
         [DefaultValue(QueryParameterType.NVarchar2)]
         public QueryParameterType DataType { get; set; }
@@ -67,30 +64,30 @@ namespace Frends.Community.Oracle
         public QueryReturnType ReturnType { get; set; }
 
         /// <summary>
-        /// Xml specific queryOutput properties
+        /// Xml specific queryOutput properties.
         /// </summary>
         [UIHint(nameof(ReturnType), "", QueryReturnType.Xml)]
         public XmlOutputProperties XmlOutput { get; set; }
 
         /// <summary>
-        /// Json specific queryOutput properties
+        /// Json specific queryOutput properties.
         /// </summary>
         [UIHint(nameof(ReturnType), "", QueryReturnType.Json)]
         public JsonOutputProperties JsonOutput { get; set; }
 
         /// <summary>
-        /// Csv specific queryOutput properties
+        /// Csv specific queryOutput properties.
         /// </summary>
         [UIHint(nameof(ReturnType), "", QueryReturnType.Csv)]
         public CsvOutputProperties CsvOutput { get; set; }
 
         /// <summary>
-        /// In case user wants to write results to a file instead of returning them to process
+        /// In case user wants to write results to a file instead of returning them to process.
         /// </summary>
         public bool OutputToFile { get; set; }
 
         /// <summary>
-        /// Output file properties
+        /// Output file properties.
         /// </summary>
         [UIHint(nameof(OutputToFile), "", true)]
         public OutputFileProperties OutputFile { get; set; }
@@ -102,38 +99,38 @@ namespace Frends.Community.Oracle
     {
         /// <summary>
         /// Choose if error should be thrown if Task failes.
-        /// Otherwise returns Object {Success = false }
+        /// Otherwise returns Object { Success = false }.
         /// </summary>
         [DefaultValue(true)]
         public bool ThrowErrorOnFailure { get; set; }
 
         /// <summary>
-        /// Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Default is Serializable.
+        /// Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions.
+        /// Default is Serializable.
         /// </summary>
         public Oracle_IsolationLevel IsolationLevel { get; set; }
 
         /// <summary>
-        /// Timeout value in seconds
+        /// Timeout value in seconds.
         /// </summary>
         [DefaultValue(30)]
         public int TimeoutSeconds { get; set; }
 
-
         /// <summary>
-        /// EnableDetaildLogging
+        /// Enable detailed logging.
         /// </summary>
         [DefaultValue(false)]
         public bool EnableDetailedLogging { get; set; }
 
         /// <summary>
-        /// TraceLevel
+        /// Set the logging trace level.
         /// </summary>
         [UIHint(nameof(EnableDetailedLogging), "", true)]
         [DefaultValue(7)]
         public int TraceLevel { get; set; }
 
         /// <summary>
-        /// TraceFileLocation
+        /// Set the location of trace file.
         /// </summary>
         [UIHint(nameof(EnableDetailedLogging), "", true)]
         [DisplayFormat(DataFormatString = "Text")]
@@ -145,18 +142,19 @@ namespace Frends.Community.Oracle
     {
         /// <summary>
         /// Choose if error should be thrown if Task failes.
-        /// Otherwise returns Object {Success = false }
+        /// Otherwise returns Object { Success = false }.
         /// </summary>
         [DefaultValue(true)]
         public bool ThrowErrorOnFailure { get; set; }
 
         /// <summary>
-        /// Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions. Default is Serializable.
+        /// Transactions specify an isolation level that defines the degree to which one transaction must be isolated from resource or data modifications made by other transactions.
+        /// Default is Serializable.
         /// </summary>
         public Oracle_IsolationLevel IsolationLevel { get; set; }
 
         /// <summary>
-        /// Timeout value in seconds
+        /// Timeout value in seconds.
         /// </summary>
         [DefaultValue(30)]
         public int TimeoutSeconds { get; set; }
@@ -164,7 +162,7 @@ namespace Frends.Community.Oracle
     }
 
     /// <summary>
-    /// Result to be returned from task
+    /// Result to be returned from task.
     /// </summary>
     public class Output
     {
@@ -174,7 +172,7 @@ namespace Frends.Community.Oracle
     }
 
     /// <summary>
-    /// Result to be returned from task
+    /// Result to be returned from task.
     /// </summary>
     public class MultiQueryOutput
     {
@@ -184,7 +182,7 @@ namespace Frends.Community.Oracle
     }
 
     /// <summary>
-    /// Result to be returned from task
+    /// Result to be returned from task.
     /// </summary>
     public class BatchOperationOutput
     {
@@ -194,7 +192,7 @@ namespace Frends.Community.Oracle
     }
 
     /// <summary>
-    /// Result to be returned from task
+    /// Result to be returned from task.
     /// </summary>
     public class MultiBatchOperationOutput
     {
@@ -204,45 +202,79 @@ namespace Frends.Community.Oracle
     }
 
     /// <summary>
-    /// Xml queryOutput specific properties
+    /// Xml queryOutput specific properties.
     /// </summary>
     public class XmlOutputProperties
     {
         /// <summary>
-        /// Xml root element name
+        /// Xml root element name.
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("ROWSET")]
         public string RootElementName { get; set; }
 
         /// <summary>
-        /// Xml row element name
+        /// Xml row element name.
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("ROW")]
         public string RowElementName { get; set; }
 
         /// <summary>
-        /// The maximum amount of rows to return; defaults to -1 eg. no limit
+        /// The maximum amount of rows to return.
+        /// Defaults to -1.
+        /// Eg. no limit.
         /// </summary>
         [DefaultValue(-1)]
         public int MaxmimumRows { get; set; }
+
+        /// <summary>
+        /// Overwrite decimal value separator in Decimal type columns.
+        /// If empty, uses Oracle default.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("")]
+        public string DecimalSeparator { get; set; }
+
+        /// <summary>
+        /// DateTime output format.
+        /// If empty, uses Oracle default.
+        /// Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types.
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("s")]
+        public string DateTimeFomat { get; set; }
+
     }
 
     /// <summary>
-    /// Json queryOutput specific properties
+    /// Json queryOutput specific properties.
     /// </summary>
     public class JsonOutputProperties
     {
         /// <summary>
-        /// Specify the culture info to be used when parsing result to JSON. If this is left empty InvariantCulture will be used. List of cultures: https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx Use the Language Culture Name.
+        /// Specify the culture info to be used when parsing result to JSON.
+        /// If this is left empty InvariantCulture will be used.
+        /// List of cultures: https://msdn.microsoft.com/en-us/library/ee825488(v=cs.20).aspx
+        /// Use the Language Culture Name.
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
         public string CultureInfo { get; set; }
+
+        /// <summary>
+        /// DateTime output format.
+        /// If empty, uses Oracle default.
+        /// Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types.
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("s")]
+        public string DateTimeFomat { get; set; }
     }
 
     /// <summary>
-    /// Csv queryOutput specific properties
+    /// Csv queryOutput specific properties.
     /// </summary>
     public class CsvOutputProperties
     {
@@ -252,27 +284,45 @@ namespace Frends.Community.Oracle
         public bool IncludeHeaders { get; set; }
 
         /// <summary>
-        /// Csv separator to use
+        /// Csv separator to use.
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue(";")]
         public string CsvSeparator { get; set; }
+
+        /// <summary>
+        /// Overwrite decimal value separator in Decimal type columns.
+        /// If empty, uses Oracle default.
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("")]
+        public string DecimalSeparator { get; set; }
+
+        /// <summary>
+        /// DateTime output format.
+        /// If empty, uses Oracle default.
+        /// Used for DATE, TIMESTAMP, TIMESTAMPTZ and TIMESTAMPLTZ types.
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.datetime.tostring?view=net-5.0#System_DateTime_ToString_System_String_
+        /// </summary>
+        [DisplayFormat(DataFormatString = "Text")]
+        [DefaultValue("s")]
+        public string DateTimeFomat { get; set; }
     }
 
     /// <summary>
-    /// Properties for when user wants to write the result directly into a file
+    /// Properties for when user wants to write the result directly into a file.
     /// </summary>
     public class OutputFileProperties
     {
         /// <summary>
-        /// ExecuteQueryOracle queryOutput filepath
+        /// ExecuteQueryOracle queryOutput filepath.
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("c:\\temp\\queryOutput.csv")]
         public string Path { get; set; }
 
         /// <summary>
-        /// Output file encoding
+        /// Output file encoding.
         /// </summary>
         [DisplayFormat(DataFormatString = "Text")]
         [DefaultValue("utf-8")]
@@ -296,7 +346,7 @@ namespace Frends.Community.Oracle
         public string InputJson { get; set; }
 
         /// <summary>
-        /// Oracle connection string
+        /// Oracle connection string.
         /// </summary>
         [PasswordPropertyText]
         [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
@@ -307,17 +357,17 @@ namespace Frends.Community.Oracle
     public class InputMultiQuery
     {
         ///<summary>
-        ///Array of queries to execute
+        /// Array of queries to execute.
         ///</summary>
         public InputQuery[] Queries { get; set; }
 
         /// <summary>
-        /// Parameters for the database query
+        /// Parameters for the database query.
         /// </summary>
         public QueryParameter[] Parameters { get; set; }
 
         /// <summary>
-        /// Oracle connection string
+        /// Oracle connection string.
         /// </summary>
         [PasswordPropertyText]
         [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
@@ -328,7 +378,7 @@ namespace Frends.Community.Oracle
     public class InputQuery
     {
         /// <summary>
-        /// Multiquery array item
+        /// Multiquery array item.
         /// </summary>
         [DisplayFormat(DataFormatString = "Sql")]
         [DefaultValue("SELECT ColumnName FROM TableName")]
@@ -340,7 +390,7 @@ namespace Frends.Community.Oracle
         public BatchOperationQuery[] BatchQueries { get; set; }
 
         /// <summary>
-        /// Oracle connection string
+        /// Oracle connection string.
         /// </summary>
         [PasswordPropertyText]
         [DefaultValue("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=MyHost)(PORT=MyPort))(CONNECT_DATA=(SERVICE_NAME=MyOracleSID)));User Id=myUsername;Password=myPassword;")]
@@ -358,7 +408,8 @@ namespace Frends.Community.Oracle
         public string BatchInputQuery { get; set; }
 
         /// <summary>
-        /// Input json for batch operation. Needs to be a Json array.
+        /// Input json for batch operation.
+        /// Needs to be a Json array.
         /// </summary>
         [DisplayFormat(DataFormatString = "Json")]
         [DefaultValue("[{\"Id\":15,\"FirstName\":\"Foo\"},{\"Id\":20,\"FirstName\":\"Bar\"}]")]

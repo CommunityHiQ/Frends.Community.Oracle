@@ -10,7 +10,6 @@ using System.Dynamic;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Dapper;
-using System.Collections.Generic;
 using System.IO;
 
 #pragma warning disable 1591
@@ -21,7 +20,8 @@ namespace Frends.Community.Oracle
     {
 
         /// <summary>
-        /// Task for performing queries in Oracle databases. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
+        /// Task for performing queries in Oracle databases.
+        /// See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
         /// </summary>
         /// <param name="queryInput"></param>
         /// <param name="queryOutput"></param>
@@ -51,18 +51,19 @@ namespace Frends.Community.Oracle
                         using (var command = new OracleCommand(queryInput.Query, c))
                         {
                             command.CommandTimeout = queryOptions.TimeoutSeconds;
-                            command.BindByName = true; // is this xmlCommand specific?
+                            // Is this xmlCommand specific?
+                            command.BindByName = true;
 
-                            // check for command parameters and set them
+                            // Check for command parameters and set them.
                             if (queryInput.Parameters != null)
                                 command.Parameters.AddRange(queryInput.Parameters.Select(p => CreateOracleParameter(p)).ToArray());
 
-                            // declare Result object
+                            // Declare Result object.
                             string queryResult;
 
                             if (queryOptions.IsolationLevel == Oracle_IsolationLevel.None)
                             {
-                                // set commandType according to ReturnType
+                                // Set commandType according to ReturnType.
                                 switch (queryOutput.ReturnType)
                                 {
                                     case QueryReturnType.Xml:
@@ -81,12 +82,11 @@ namespace Frends.Community.Oracle
                             }
                             else
                             {
-                                OracleTransaction txn = c.BeginTransaction(queryOptions.IsolationLevel.GetTransactionIsolationLevel());
+                                var txn = c.BeginTransaction(queryOptions.IsolationLevel.GetTransactionIsolationLevel());
 
                                 try
                                 {
-
-                                    // set commandType according to ReturnType
+                                    // Set commandType according to ReturnType.
                                     switch (queryOutput.ReturnType)
                                     {
                                         case QueryReturnType.Xml:
@@ -120,7 +120,7 @@ namespace Frends.Community.Oracle
                     }
                     finally
                     {
-                        // Close connection
+                        // Close connection.
                         c.Dispose();
                         c.Close();
                         OracleConnection.ClearPool(c);
@@ -141,7 +141,8 @@ namespace Frends.Community.Oracle
 
 
         /// <summary>
-        /// Task to execute multiple queries in Oracle database. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
+        /// Task to execute multiple queries in Oracle database.
+        /// See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
         /// </summary>
         /// <param name="input"></param>
         /// <param name="output"></param>
@@ -170,13 +171,13 @@ namespace Frends.Community.Oracle
                     try
                     {
                         object queryResult;
-                        JArray queryResults = new JArray();
+                        var queryResults = new JArray();
 
                         await c.OpenAsync(cancellationToken);
 
                         if (options.IsolationLevel == Oracle_IsolationLevel.None)
                         {
-                            //set commandType according to ReturnType
+                            // Set commandType according to ReturnType.
                             switch (output.ReturnType)
                             {
                                 case QueryReturnType.Json:
@@ -192,11 +193,11 @@ namespace Frends.Community.Oracle
                                         queryResult = await command.MultiQueryToJsonAsync(output, cancellationToken);
                                         var result = new { QueryIndex = Array.IndexOf(input.Queries, query), Output = queryResult };
                                         queryResults.Add(JObject.FromObject(result));
+                                        cancellationToken.ThrowIfCancellationRequested();
                                     }
                                     break;
 
                                 case QueryReturnType.Xml:
-
                                     foreach (var query in input.Queries)
                                     {
                                         var command = new OracleCommand(query.InputQueryString, c);
@@ -209,11 +210,11 @@ namespace Frends.Community.Oracle
                                         queryResult = await command.MultiQueryToXmlAsync(output, cancellationToken);
                                         var result = new { QueryIndex = Array.IndexOf(input.Queries, query), Output = queryResult };
                                         queryResults.Add(JObject.FromObject(result));
+                                        cancellationToken.ThrowIfCancellationRequested();
                                     }
                                     break;
 
                                 case QueryReturnType.Csv:
-
                                     foreach (var query in input.Queries)
                                     {
                                         var command = new OracleCommand(query.InputQueryString, c);
@@ -226,6 +227,7 @@ namespace Frends.Community.Oracle
                                         queryResult = await command.MultiQueryToCSVAsync(output, cancellationToken);
                                         var result = new { QueryIndex = Array.IndexOf(input.Queries, query), Output = queryResult };
                                         queryResults.Add(JObject.FromObject(result));
+                                        cancellationToken.ThrowIfCancellationRequested();
                                     }
                                     break;
 
@@ -235,14 +237,14 @@ namespace Frends.Community.Oracle
 
                             if (output.OutputToFile)
                             {
-                                using (StreamWriter file = File.CreateText(output.OutputFile.Path))
-                                using (JsonTextWriter writer = new JsonTextWriter(file))
+                                using (var file = File.CreateText(output.OutputFile.Path))
+                                using (var writer = new JsonTextWriter(file))
                                 {
                                     writer.Formatting = Formatting.Indented;
                                     queryResults.WriteTo(writer);
                                 }
 
-                                //Return output file path, not query results 
+                                // Return output file path, not query results.
                                 queryResults.Clear();
                                 queryResults.Add(JObject.FromObject(new { OutputPath = output.OutputFile.Path.ToString() }));
                             }
@@ -251,11 +253,11 @@ namespace Frends.Community.Oracle
                         }
                         else
                         {
-                            OracleTransaction txn = c.BeginTransaction(options.IsolationLevel.GetTransactionIsolationLevel());
+                            var txn = c.BeginTransaction(options.IsolationLevel.GetTransactionIsolationLevel());
 
                             try
                             {
-                                //set commandType according to ReturnType
+                                // Set commandType according to ReturnType.
                                 switch (output.ReturnType)
                                 {
                                     case QueryReturnType.Xml:
@@ -271,6 +273,7 @@ namespace Frends.Community.Oracle
                                             queryResult = await command.MultiQueryToXmlAsync(output, cancellationToken);
                                             var result = new { QueryIndex = Array.IndexOf(input.Queries, query), Output = queryResult };
                                             queryResults.Add(JObject.FromObject(result));
+                                            cancellationToken.ThrowIfCancellationRequested();
                                         }
                                         txn.Commit();
                                         break;
@@ -288,12 +291,12 @@ namespace Frends.Community.Oracle
                                             queryResult = await command.MultiQueryToCSVAsync(output, cancellationToken);
                                             var result = new { QueryIndex = Array.IndexOf(input.Queries, query), Output = queryResult };
                                             queryResults.Add(JObject.FromObject(result));
+                                            cancellationToken.ThrowIfCancellationRequested();
                                         }
                                         txn.Commit();
                                         break;
 
                                     case QueryReturnType.Json:
-
                                         foreach (var query in input.Queries)
                                         {
                                             var command = new OracleCommand(query.InputQueryString, c);
@@ -305,6 +308,7 @@ namespace Frends.Community.Oracle
                                             queryResult = await command.MultiQueryToJsonAsync(output, cancellationToken);
                                             var result = new { QueryIndex = Array.IndexOf(input.Queries, query), Output = queryResult };
                                             queryResults.Add(JObject.FromObject(result));
+                                            cancellationToken.ThrowIfCancellationRequested();
                                         }
 
                                         txn.Commit();
@@ -326,14 +330,14 @@ namespace Frends.Community.Oracle
 
                             if (output.OutputToFile)
                             {
-                                using (StreamWriter file = File.CreateText(output.OutputFile.Path))
-                                using (JsonTextWriter writer = new JsonTextWriter(file))
+                                using (var file = File.CreateText(output.OutputFile.Path))
+                                using (var writer = new JsonTextWriter(file))
                                 {
                                     writer.Formatting = Formatting.Indented;
                                     queryResults.WriteTo(writer);
                                 }
 
-                                //Return output file path, not query results
+                                // Return output file path, not query results.
                                 queryResults.Clear();
                                 queryResults.Add(JObject.FromObject(new { OutputPath = output.OutputFile.Path.ToString() }));
                             }
@@ -344,7 +348,7 @@ namespace Frends.Community.Oracle
                     }
                     finally
                     {
-                        //close connection
+                        // Close connection.
                         c.Dispose();
                         c.Close();
                         OracleConnection.ClearPool(c);
@@ -366,7 +370,9 @@ namespace Frends.Community.Oracle
 
 
         /// <summary>
-        /// Create a query for a batch operation like insert. The query is executed with Dapper ExecuteAsync. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
+        /// Create a query for a batch operation like insert.
+        /// The query is executed with Dapper ExecuteAsync.
+        /// See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
         /// </summary>
         /// <param name="input">Input parameters</param>
         /// <param name="options"></param>
@@ -388,9 +394,10 @@ namespace Frends.Community.Oracle
                         using (var command = new OracleCommand(input.Query, c))
                         {
                             command.CommandTimeout = options.TimeoutSeconds;
-                            command.BindByName = true; // is this xmlCommand specific?
+                            // Is this xmlCommand specific?
+                            command.BindByName = true;
 
-                            // declare Result object
+                            // Declare Result object.
                             int queryResult;
 
                             if (options.IsolationLevel == Oracle_IsolationLevel.None)
@@ -409,12 +416,10 @@ namespace Frends.Community.Oracle
 
                             else
                             {
-                                OracleTransaction txn =
-                                    c.BeginTransaction(options.IsolationLevel.GetTransactionIsolationLevel());
+                                var txn = c.BeginTransaction(options.IsolationLevel.GetTransactionIsolationLevel());
                                 try
                                 {
-                                    var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(input.InputJson,
-                                        new ExpandoObjectConverter());
+                                    var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(input.InputJson, new ExpandoObjectConverter());
                                     queryResult = await c.ExecuteAsync(
                                             input.Query,
                                             param: obj,
@@ -440,7 +445,7 @@ namespace Frends.Community.Oracle
 
                     finally
                     {
-                        // Close connection
+                        // Close connection.
                         c.Dispose();
                         c.Close();
                         OracleConnection.ClearPool(c);
@@ -460,7 +465,9 @@ namespace Frends.Community.Oracle
         }
 
         /// <summary>
-        /// Create multiple queries for batch operations like insert. Queries are executed with Dapper ExecuteAsync. See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
+        /// Create multiple queries for batch operations like insert.
+        /// Queries are executed with Dapper ExecuteAsync.
+        /// See documentation at https://github.com/CommunityHiQ/Frends.Community.Oracle
         /// </summary>
         /// <param name="input">Input parameters</param>
         /// <param name="options"></param>
@@ -480,19 +487,19 @@ namespace Frends.Community.Oracle
                         await c.OpenAsync(cancellationToken);
                         if (options.IsolationLevel == Oracle_IsolationLevel.None)
                         {
-                            // declare Result object
+                            // Declare Result object.
                             int queryResult;
-                            JArray queryResults = new JArray();
+                            var queryResults = new JArray();
 
                             foreach (var query in input.BatchQueries)
                             {
                                 using (var command = new OracleCommand(query.BatchInputQuery, c))
                                 {
                                     command.CommandTimeout = options.TimeoutSeconds;
-                                    command.BindByName = true; // is this xmlCommand specific?
+                                    // Is this xmlCommand specific?
+                                    command.BindByName = true;
 
-                                    var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(query.InputJson,
-                                        new ExpandoObjectConverter());
+                                    var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(query.InputJson, new ExpandoObjectConverter());
                                     queryResult = await c.ExecuteAsync(
                                             query.BatchInputQuery,
                                             param: obj,
@@ -503,6 +510,7 @@ namespace Frends.Community.Oracle
                                     queryResults.Add(JObject.FromObject(result));
 
                                 }
+                                cancellationToken.ThrowIfCancellationRequested();
                             }
 
                             return new MultiBatchOperationOutput { Success = true, Results = queryResults };
@@ -510,19 +518,17 @@ namespace Frends.Community.Oracle
 
                         else
                         {
-                            OracleTransaction txn =
-                                c.BeginTransaction(options.IsolationLevel.GetTransactionIsolationLevel());
+                            var txn = c.BeginTransaction(options.IsolationLevel.GetTransactionIsolationLevel());
 
-                            //declare queryResult (rowcount)
+                            // Declare queryResult (rowcount).
                             int queryResult;
-                            JArray queryResults = new JArray();
+                            var queryResults = new JArray();
 
                             try
                             {
                                 foreach (var query in input.BatchQueries)
                                 {
-                                    var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(query.InputJson,
-                                        new ExpandoObjectConverter());
+                                    var obj = JsonConvert.DeserializeObject<ExpandoObject[]>(query.InputJson, new ExpandoObjectConverter());
                                     queryResult = await c.ExecuteAsync(
                                             query.BatchInputQuery,
                                             param: obj,
@@ -532,7 +538,7 @@ namespace Frends.Community.Oracle
                                         .ConfigureAwait(false);
                                     var result = new { QueryIndex = Array.IndexOf(input.BatchQueries, query), RowCount = queryResult };
                                     queryResults.Add(JObject.FromObject(result));
-
+                                    cancellationToken.ThrowIfCancellationRequested();
                                 }
                                 txn.Commit();
                                 txn.Dispose();
@@ -551,7 +557,7 @@ namespace Frends.Community.Oracle
 
                     finally
                     {
-                        // Close connection
+                        // Close connection.
                         c.Dispose();
                         c.Close();
                         OracleConnection.ClearPool(c);

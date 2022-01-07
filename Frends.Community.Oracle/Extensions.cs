@@ -30,39 +30,122 @@ namespace Frends.Community.Oracle
         {
             return (TEnum)Enum.Parse(typeof(TEnum), source.ToString(), true);
         }
+
+        private static string ParseOracleDate(OracleDataReader reader, int index, string dateFormat)
+        {
+            if (string.IsNullOrWhiteSpace(dateFormat)) return reader.GetValue(index).ToString();
+
+            var dateType = reader.GetDataTypeName(index);
+            var dateString = ""; // Formatted output date.
+            
+            switch (dateType)
+            {
+                case "Date":
+                    var oDate = reader.GetOracleDate(index);
+                    if(!oDate.IsNull)
+                    {
+                        var dt = new DateTime(oDate.Year,oDate.Month,oDate.Day,oDate.Hour,oDate.Minute,oDate.Second);
+                        dateString = dt.ToString(dateFormat);
+                    }
+                    break;
+                case "TimeStamp":
+                    var oTimeStamp = reader.GetOracleTimeStamp(index);
+                    if(!oTimeStamp.IsNull)
+                    {
+                        // Is this the best way to get milliseconds from double to int?
+                        int.TryParse(oTimeStamp.Millisecond.ToString("000").Substring(0, 3), out int msOut);
+                        var dt = new DateTime(oTimeStamp.Year, oTimeStamp.Month, oTimeStamp.Day, oTimeStamp.Hour, oTimeStamp.Minute, oTimeStamp.Second, msOut);
+                        dateString = dt.ToString(dateFormat);
+                    }
+                    break;
+                case "TimeStampLTZ":
+                    var oTimeStampLTZ = reader.GetOracleTimeStampLTZ(index);
+                    if(!oTimeStampLTZ.IsNull)
+                    {
+                        // Is this the best way to get milliseconds from double to int?
+                        int.TryParse(oTimeStampLTZ.Millisecond.ToString("000").Substring(0, 3), out int msOut);
+                        var dt = new DateTime(oTimeStampLTZ.Year, oTimeStampLTZ.Month, oTimeStampLTZ.Day, oTimeStampLTZ.Hour, oTimeStampLTZ.Minute, oTimeStampLTZ.Second, msOut);
+                        dateString = dt.ToString(dateFormat);
+                    }
+                    break;
+                case "TimeStampTZ":
+                    var oTimeStampTZ = reader.GetOracleTimeStampTZ(index);
+                    if(!oTimeStampTZ.IsNull)
+                    {
+                        // Is this the best way to get milliseconds from double to int?
+                        int.TryParse(oTimeStampTZ.Millisecond.ToString("000").Substring(0, 3), out int msOut);
+                        var dt = new DateTime(oTimeStampTZ.Year, oTimeStampTZ.Month, oTimeStampTZ.Day, oTimeStampTZ.Hour, oTimeStampTZ.Minute, oTimeStampTZ.Second, msOut);
+                        dateString = dt.ToString(dateFormat);
+                    }
+                    break;
+                default:
+                    throw new Exception("Trying to parse unknown date type.");
+            }
+            return dateString;
+        }
+
         /// <summary>
-        /// Write query results to csv string or file
+        /// Write query results to csv string or file.
         /// </summary>
         /// <param name="command"></param>
         /// <param name="queryOutput"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <returns>String</returns>
         public static async Task<string> ToXmlAsync(this OracleCommand command, QueryOutputProperties queryOutput, CancellationToken cancellationToken)
         {
-            Encoding encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
+            var encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
 
-            using (TextWriter writer = queryOutput.OutputToFile ? new StreamWriter(queryOutput.OutputFile.Path, false, encoding) : new StringWriter() as TextWriter)
-            using (OracleDataReader reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
+            using (var writer = queryOutput.OutputToFile ? new StreamWriter(queryOutput.OutputFile.Path, false, encoding) : new StringWriter() as TextWriter)
+            using (var reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
             {
-                using (XmlWriter xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Async = true, Indent = true }))
+                using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Async = true, Indent = true }))
                 {
                     await xmlWriter.WriteStartDocumentAsync();
                     await xmlWriter.WriteStartElementAsync("", queryOutput.XmlOutput.RootElementName, "");
 
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        // single row element container
+                        // single row element container.
                         await xmlWriter.WriteStartElementAsync("", queryOutput.XmlOutput.RowElementName, "");
 
-                        for (int i = 0; i < reader.FieldCount; i++)
+                        for (var i = 0; i < reader.FieldCount; i++)
                         {
-                            await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", reader.GetValue(i).ToString());
+                            switch (reader.GetDataTypeName(i))
+                            {
+                                case "Decimal":
+                                    var v = reader.GetOracleDecimal(i);
+                                    var decimalValue = OracleDecimal.SetPrecision(v, 28);
+                                    string decimalString = decimalValue.ToString();
+                                    // Is decimal separator overwrite value given and query result value is not null?
+                                    if (!string.IsNullOrWhiteSpace(queryOutput.XmlOutput.DecimalSeparator))
+                                    {
+                                        decimalString = decimalString
+                                            .Replace(".", queryOutput.XmlOutput.DecimalSeparator)
+                                            .Replace(",", queryOutput.XmlOutput.DecimalSeparator);
+                                    }
+
+                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", decimalString);
+                                    break;
+                                case "Date":
+                                case "TimeStamp":
+                                case "TimeStampLTZ":
+                                case "TimeStampTZ":
+                                    string dateString = ParseOracleDate(reader,
+                                                                        i,
+                                                                        queryOutput.XmlOutput.DateTimeFomat);
+                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", dateString);
+                                    break;
+
+                                default:
+                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", reader.GetValue(i).ToString());
+                                    break;
+                            }
                         }
 
-                        // close single row element container
+                        // Close single row element container.
                         await xmlWriter.WriteEndElementAsync();
 
-                        // write only complete elements, but stop if process was terminated
+                        // Write only complete elements, but stop if process was terminated.
                         cancellationToken.ThrowIfCancellationRequested();
                     }
 
@@ -82,68 +165,70 @@ namespace Frends.Community.Oracle
         }
 
         /// <summary>
-        /// Write query results to json string or file
+        /// Write query results to json string or file.
         /// </summary>
         /// <param name="command"></param>
         /// <param name="queryOutput"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <returns>String</returns>
         public static async Task<string> ToJsonAsync(this OracleCommand command, QueryOutputProperties queryOutput, CancellationToken cancellationToken)
         {
-            using (OracleDataReader reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
+            using (var reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
             {
-                var culture = String.IsNullOrWhiteSpace(queryOutput.JsonOutput.CultureInfo) ? CultureInfo.InvariantCulture : new CultureInfo(queryOutput.JsonOutput.CultureInfo);
+                var culture = string.IsNullOrWhiteSpace(queryOutput.JsonOutput.CultureInfo) ? CultureInfo.InvariantCulture : new CultureInfo(queryOutput.JsonOutput.CultureInfo);
 
-                // utf-8 as default encoding
-                Encoding encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
+                // UTF-8 as default encoding.
+                var encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
 
-                // create json result
+                // Create json result.
                 using (var fileWriter = queryOutput.OutputToFile ? new StreamWriter(queryOutput.OutputFile.Path, false, encoding) : null)
                 using (var writer = queryOutput.OutputToFile ? new JsonTextWriter(fileWriter) : new JTokenWriter() as JsonWriter)
                 {
                     writer.Formatting = Newtonsoft.Json.Formatting.Indented;
                     writer.Culture = culture;
 
-                    // start array
+                    // Start array.
                     await writer.WriteStartArrayAsync(cancellationToken);
-
-                    cancellationToken.ThrowIfCancellationRequested();
 
                     while (reader.Read())
                     {
-                        // start row object
+                        // Start row object.
                         await writer.WriteStartObjectAsync(cancellationToken);
 
                         for (var i = 0; i < reader.FieldCount; i++)
                         {
-                            // add row element name
+                            // Add row element name.
                             await writer.WritePropertyNameAsync(reader.GetName(i), cancellationToken);
 
-                            // add row element value
+                            // Add row element value.
                             switch (reader.GetDataTypeName(i))
                             {
                                 case "Decimal":
-                                    // FCOM-204 fix; proper handling of decimal values and NULL values in decimal type fields
-                                    OracleDecimal v = reader.GetOracleDecimal(i);
+                                    // FCOM-204 fix; proper handling of decimal values and NULL values in decimal type fields.
+                                    var v = reader.GetOracleDecimal(i);
                                     var FieldValue = OracleDecimal.SetPrecision(v, 28);
 
                                     if (!FieldValue.IsNull) await writer.WriteValueAsync((decimal)FieldValue, cancellationToken);
                                     else await writer.WriteValueAsync(string.Empty, cancellationToken);
                                     break;
+                                case "Date":
+                                case "TimeStamp":
+                                case "TimeStampLTZ":
+                                case "TimeStampTZ":
+                                    string dateString = ParseOracleDate(reader, i, queryOutput.JsonOutput.DateTimeFomat);
+                                    await writer.WriteValueAsync(dateString, cancellationToken);
+                                    break;
                                 default:
                                     await writer.WriteValueAsync(reader.GetValue(i) ?? string.Empty, cancellationToken);
                                     break;
                             }
-
-                            cancellationToken.ThrowIfCancellationRequested();
                         }
-
-                        await writer.WriteEndObjectAsync(cancellationToken); // end row object
-
                         cancellationToken.ThrowIfCancellationRequested();
+                        // End row object.
+                        await writer.WriteEndObjectAsync(cancellationToken);
                     }
 
-                    // end array
+                    // End array.
                     await writer.WriteEndArrayAsync(cancellationToken);
 
                     if (queryOutput.OutputToFile)
@@ -159,38 +244,39 @@ namespace Frends.Community.Oracle
         }
 
         /// <summary>
-        /// Write query results to csv string or file
+        /// Write query results to csv string or file.
         /// </summary>
         /// <param name="command"></param>
         /// <param name="queryOutput"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <returns>String</returns>
         public static async Task<string> ToCsvAsync(this OracleCommand command, QueryOutputProperties queryOutput, CancellationToken cancellationToken)
         {
-            Encoding encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
+            var encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
 
-            using (OracleDataReader reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
-            using (TextWriter w = queryOutput.OutputToFile ? new StreamWriter(queryOutput.OutputFile.Path, false, encoding) : new StringWriter() as TextWriter)
+            using (var reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
+            using (var w = queryOutput.OutputToFile ? new StreamWriter(queryOutput.OutputFile.Path, false, encoding) : new StringWriter() as TextWriter)
             {
-                bool headerWritten = false;
+                var headerWritten = false;
 
                 while (await reader.ReadAsync(cancellationToken))
                 {
-                    // Initiate string builder for the line
-                    StringBuilder sb = new StringBuilder();
+                    // Initiate string builder for the line.
+                    var sb = new StringBuilder();
 
-                    // write csv header if necessary
+                    // Write csv header if necessary.
                     if (!headerWritten && queryOutput.CsvOutput.IncludeHeaders)
                     {
                         var fieldNames = new object[reader.FieldCount];
-                        for (int i = 0; i < reader.FieldCount; i++)
+                        for (var i = 0; i < reader.FieldCount; i++)
                         {
-                            string fieldName = reader.GetName(i);
+                            var fieldName = reader.GetName(i);
                             sb.Append(fieldName);
                             if (i < reader.FieldCount - 1)
                             {
                                 sb.Append(queryOutput.CsvOutput.CsvSeparator);
                             }
+                            cancellationToken.ThrowIfCancellationRequested();
                         }
                         await w.WriteLineAsync(sb.ToString());
                         headerWritten = true;
@@ -198,29 +284,47 @@ namespace Frends.Community.Oracle
 
                     sb = new StringBuilder();
                     var fieldValues = new object[reader.FieldCount];
-                    for (int i = 0; i < reader.FieldCount; i++)
+                    for (var i = 0; i < reader.FieldCount; i++)
                     {
-                        if (reader.GetDataTypeName(i).Equals("Decimal"))
+                        switch (reader.GetDataTypeName(i))
                         {
-                            OracleDecimal v = reader.GetOracleDecimal(i);
-                            fieldValues[i] = OracleDecimal.SetPrecision(v, 28);
-                        }
-                        else
-                        {
-                            fieldValues[i] = reader.GetValue(i);
+                            case "Decimal":
+                                var v = reader.GetOracleDecimal(i);
+                                var decimalValue= OracleDecimal.SetPrecision(v, 28);
+                                // Is decimal separator overwrite value given and query result value is not null?
+                                if (!string.IsNullOrWhiteSpace(queryOutput.CsvOutput.DecimalSeparator) && !decimalValue.IsNull)
+                                {
+                                    fieldValues[i] = decimalValue.ToString()
+                                        .Replace(".", queryOutput.CsvOutput.DecimalSeparator)
+                                        .Replace(",", queryOutput.CsvOutput.DecimalSeparator);
+                                }
+                                else
+                                    fieldValues[i] = decimalValue;
+                                break;
+                            case "Date":
+                            case "TimeStamp":
+                            case "TimeStampLTZ":
+                            case "TimeStampTZ":
+                                var dateString = ParseOracleDate(reader, i, queryOutput.CsvOutput.DateTimeFomat);
+                                fieldValues[i] = dateString;
+                                break;
+                            default:
+                                fieldValues[i] = reader.GetValue(i);
+                                break;
                         }
 
-                        string fieldValue = fieldValues[i].ToString();
+                        var fieldValue = fieldValues[i].ToString();
+                        // Remove possible line breaks.
+                        fieldValue = fieldValue.Replace("\r\n"," ").Replace("\n"," ").Replace("\r"," ");
+
                         sb.Append(fieldValue);
                         if (i < reader.FieldCount - 1)
                         {
                             sb.Append(queryOutput.CsvOutput.CsvSeparator);
                         }
+                        cancellationToken.ThrowIfCancellationRequested();
                     }
                     await w.WriteLineAsync(sb.ToString());
-
-                    // write only complete rows, but stop if process was terminated
-                    cancellationToken.ThrowIfCancellationRequested();
                 }
 
                 if (queryOutput.OutputToFile)
@@ -235,48 +339,46 @@ namespace Frends.Community.Oracle
         }
 
         /// <summary>
-        /// Write query results to json string or file
+        /// Write query results to json string or file.
         /// </summary>
         /// <param name="command"></param>
         /// <param name="queryOutput"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <returns>JToken</returns>
         public static async Task<object> MultiQueryToJsonAsync(this OracleCommand command, QueryOutputProperties queryOutput, CancellationToken cancellationToken)
         {
-            using (OracleDataReader reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
+            using (var reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
             {
-                var culture = String.IsNullOrWhiteSpace(queryOutput.JsonOutput.CultureInfo) ? CultureInfo.InvariantCulture : new CultureInfo(queryOutput.JsonOutput.CultureInfo);
+                var culture = string.IsNullOrWhiteSpace(queryOutput.JsonOutput.CultureInfo) ? CultureInfo.InvariantCulture : new CultureInfo(queryOutput.JsonOutput.CultureInfo);
 
-                // utf-8 as default encoding
-                Encoding encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
+                // UTF-8 as default encoding.
+                var encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
 
-                // create json result
+                // Create json result.
                 using (var writer = new JTokenWriter() as JsonWriter)
                 {
                     writer.Formatting = Newtonsoft.Json.Formatting.Indented;
                     writer.Culture = culture;
 
-                    // start array
+                    // Start array.
                     await writer.WriteStartArrayAsync(cancellationToken);
-
-                    cancellationToken.ThrowIfCancellationRequested();
 
                     while (reader.Read())
                     {
-                        // start row object
+                        // Start row object.
                         await writer.WriteStartObjectAsync(cancellationToken);
 
                         for (var i = 0; i < reader.FieldCount; i++)
                         {
-                            // add row element name
+                            // Add row element name.
                             await writer.WritePropertyNameAsync(reader.GetName(i), cancellationToken);
 
-                            // add row element value
+                            // Add row element value.
                             switch (reader.GetDataTypeName(i))
                             {
                                 case "Decimal":
-                                    // FCOM-204 fix; proper handling of decimal values and NULL values in decimal type fields
-                                    OracleDecimal v = reader.GetOracleDecimal(i);
+                                    // FCOM-204 fix; proper handling of decimal values and NULL values in decimal type fields.
+                                    var v = reader.GetOracleDecimal(i);
                                     var FieldValue = OracleDecimal.SetPrecision(v, 28);
 
                                     if (!FieldValue.IsNull) await writer.WriteValueAsync((decimal)FieldValue, cancellationToken);
@@ -289,13 +391,12 @@ namespace Frends.Community.Oracle
 
                             cancellationToken.ThrowIfCancellationRequested();
                         }
-
-                        await writer.WriteEndObjectAsync(cancellationToken); // end row object
-
+                        // End row object.
+                        await writer.WriteEndObjectAsync(cancellationToken);
                         cancellationToken.ThrowIfCancellationRequested();
                     }
 
-                    // end array
+                    // End array.
                     await writer.WriteEndArrayAsync(cancellationToken);
 
                     return ((JTokenWriter)writer).Token;
@@ -305,39 +406,38 @@ namespace Frends.Community.Oracle
         }
 
         /// <summary>
-        /// Write query results to json string or file
+        /// Write query results to json string or file.
         /// </summary>
         /// <param name="command"></param>
         /// <param name="queryOutput"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <returns>String</returns>
         public static async Task<string> MultiQueryToCSVAsync(this OracleCommand command, QueryOutputProperties queryOutput, CancellationToken cancellationToken)
         {
-            Encoding encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
-
-            using (OracleDataReader reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
+            using (var reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
             {
-                using (StringWriter writer = new StringWriter())
+                using (var writer = new StringWriter())
                 {
-                    bool headerWritten = false;
+                    var headerWritten = false;
 
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        // Initiate string builder for the line
-                        StringBuilder sb = new StringBuilder();
+                        // Initiate string builder for the line.
+                        var sb = new StringBuilder();
 
                         // write csv header if necessary
                         if (!headerWritten && queryOutput.CsvOutput.IncludeHeaders)
                         {
                             var fieldNames = new object[reader.FieldCount];
-                            for (int i = 0; i < reader.FieldCount; i++)
+                            for (var i = 0; i < reader.FieldCount; i++)
                             {
-                                string fieldName = reader.GetName(i);
+                                var fieldName = reader.GetName(i);
                                 sb.Append(fieldName);
                                 if (i < reader.FieldCount - 1)
                                 {
                                     sb.Append(queryOutput.CsvOutput.CsvSeparator);
                                 }
+                                cancellationToken.ThrowIfCancellationRequested();
                             }
                             await writer.WriteLineAsync(sb.ToString());
                             headerWritten = true;
@@ -345,27 +445,28 @@ namespace Frends.Community.Oracle
 
                         sb = new StringBuilder();
                         var fieldValues = new object[reader.FieldCount];
-                        for (int i = 0; i < reader.FieldCount; i++)
+                        for (var i = 0; i < reader.FieldCount; i++)
                         {
                             if (reader.GetDataTypeName(i).Equals("Decimal"))
                             {
-                                OracleDecimal v = reader.GetOracleDecimal(i);
+                                var v = reader.GetOracleDecimal(i);
                                 fieldValues[i] = OracleDecimal.SetPrecision(v, 28);
                             }
                             else
                             {
                                 fieldValues[i] = reader.GetValue(i);
                             }
-                            string fieldValue = fieldValues[i].ToString();
+                            var fieldValue = fieldValues[i].ToString();
                             sb.Append(fieldValue);
                             if (i < reader.FieldCount - 1)
                             {
                                 sb.Append(queryOutput.CsvOutput.CsvSeparator);
                             }
+                            cancellationToken.ThrowIfCancellationRequested();
                         }
                         await writer.WriteLineAsync(sb.ToString());
 
-                        // write only complete rows, but stop if process was terminated
+                        // Write only complete rows, but stop if process was terminated.
                         cancellationToken.ThrowIfCancellationRequested();
                     }
 
@@ -376,35 +477,33 @@ namespace Frends.Community.Oracle
         }
 
         /// <summary>
-        /// Write query results to csv string or file
+        /// Write query results to csv string or file.
         /// </summary>
         /// <param name="command"></param>
         /// <param name="queryOutput"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <returns>String</returns>
         public static async Task<string> MultiQueryToXmlAsync(this OracleCommand command, QueryOutputProperties queryOutput, CancellationToken cancellationToken)
         {
-            Encoding encoding = string.IsNullOrWhiteSpace(queryOutput.OutputFile?.Encoding) ? Encoding.UTF8 : Encoding.GetEncoding(queryOutput.OutputFile.Encoding);
-
-            using (StringWriter writer = new StringWriter())
+            using (var writer = new StringWriter())
             {
-                using (OracleDataReader reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
+                using (var reader = await command.ExecuteReaderAsync(cancellationToken) as OracleDataReader)
                 {
-                    using (XmlWriter xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Async = true, Indent = true }))
+                    using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Async = true, Indent = true }))
                     {
                         await xmlWriter.WriteStartDocumentAsync();
                         await xmlWriter.WriteStartElementAsync("", queryOutput.XmlOutput.RootElementName, "");
 
                         while (await reader.ReadAsync(cancellationToken))
                         {
-                            // single row element container
+                            // Single row element container.
                             await xmlWriter.WriteStartElementAsync("", queryOutput.XmlOutput.RowElementName, "");
 
-                            for (int i = 0; i < reader.FieldCount; i++)
+                            for (var i = 0; i < reader.FieldCount; i++)
                             {
                                 if (reader.GetDataTypeName(i).Equals("Decimal"))
                                 {
-                                    OracleDecimal v = reader.GetOracleDecimal(i);
+                                    var v = reader.GetOracleDecimal(i);
                                     OracleDecimal.SetPrecision(v, 28);
                                     await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", v.ToString());
                                 }
@@ -412,12 +511,13 @@ namespace Frends.Community.Oracle
                                 {
                                     await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", reader.GetValue(i).ToString());
                                 }
+                                cancellationToken.ThrowIfCancellationRequested();
                             }
 
-                            // close single row element container
+                            // Close single row element container.
                             await xmlWriter.WriteEndElementAsync();
 
-                            // write only complete elements, but stop if process was terminated
+                            // Write only complete elements, but stop if process was terminated.
                             cancellationToken.ThrowIfCancellationRequested();
                         }
 
