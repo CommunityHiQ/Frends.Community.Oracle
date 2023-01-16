@@ -24,7 +24,7 @@ namespace Frends.Community.Oracle.Query.Tests
         [OneTimeSetUp]
         public async Task OneTimeSetUp()
         {
-
+            // This is needed to ensure that the DB is up and running.
             Helpers.TestConnectionBeforeRunningTests(_connectionStringSys);
 
             using (var con = new OracleConnection(_connectionStringSys))
