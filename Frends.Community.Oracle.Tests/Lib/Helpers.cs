@@ -17,7 +17,7 @@ namespace Frends.Community.Oracle.Tests.Lib
         {
             using (var con = new OracleConnection(connectionString))
             {
-                foreach (var i in Enumerable.Range(1, 15))
+                foreach (var i in Enumerable.Range(1, 20))
                 {
                     try { con.Open(); }
                     catch
