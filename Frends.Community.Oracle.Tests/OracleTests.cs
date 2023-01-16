@@ -4,19 +4,37 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Frends.Community.Oracle.Tests.Lib;
 
 namespace Frends.Community.Oracle.Query.Tests
 {
     [TestFixture]
     public class OracleTests
     {
-        private readonly string ConnectionString = Environment.GetEnvironmentVariable("HIQ_ORACLEDB_CONNECTIONSTRING");
+        /// <summary>
+        /// Connection string for Oracle database.
+        /// </summary>
+        private readonly static string _schema = "test_user";
+        private readonly static string ConnectionString = $"Data Source = (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 51521))(CONNECT_DATA = (SERVICE_NAME = orclpdb1))); User Id = {_schema}; Password={_schema};";
+        private readonly static string _connectionStringSys = "Data Source = (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 51521))(CONNECT_DATA = (SERVICE_NAME = orclpdb1))); User Id = sys; Password=mySecurepassword9; DBA PRIVILEGE=SYSDBA";
+
         private readonly string outputDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../TestOut/");
         private readonly string expectedFileDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../ExpectedResults/");
 
         [OneTimeSetUp]
         public async Task OneTimeSetUp()
         {
+
+            Helpers.TestConnectionBeforeRunningTests(_connectionStringSys);
+
+            using (var con = new OracleConnection(_connectionStringSys))
+            {
+                con.Open();
+                Helpers.CreateTestUser(con);
+                con.Close();
+                con.Dispose();
+                OracleConnection.ClearPool(con);
+            }
             using (var connection = new OracleConnection(ConnectionString))
             {
                 await connection.OpenAsync();
@@ -74,6 +92,9 @@ namespace Frends.Community.Oracle.Query.Tests
                     await command.ExecuteNonQueryAsync();
                 }
 
+                connection.Close();
+                connection.Dispose();
+                OracleConnection.ClearPool(connection);
             }
             Directory.CreateDirectory(outputDirectory);
         }
@@ -118,12 +139,48 @@ namespace Frends.Community.Oracle.Query.Tests
                     await command.ExecuteNonQueryAsync();
                 }
 
+                connection.Close();
+                connection.Dispose();
+                OracleConnection.ClearPool(connection);
             }
+
+            using (var con = new OracleConnection(_connectionStringSys))
+            {
+                con.Open();
+                Helpers.DropTestUser(con);
+                con.Close();
+                con.Dispose();
+                OracleConnection.ClearPool(con);
+            }
+
             foreach (var file in Directory.GetFiles(outputDirectory, "*"))
             {
                 File.Delete(outputDirectory + file);
             }
             Directory.Delete(outputDirectory);
+        }
+
+        // Test needs new table new_table which has column named 'test1' with apostrophe in column name.
+        // This needs to be added manually.
+        [Ignore("Test needs data with invalid xml characters in column name.")]
+        [Test]
+        [Category("Xml tests")]
+        public async Task ShouldWorkWithApostropheInColumnName()
+        {
+            var q = new QueryProperties { Query = "select * from new_test", ConnectionString = ConnectionString };
+            var o = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Xml,
+                XmlOutput = new XmlOutputProperties
+                {
+                    RootElementName = "items",
+                    RowElementName = "item"
+                }
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
+
+            var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
+            Assert.IsTrue(result.Result.Contains("<_test1_>testi</_test1_>"));
         }
 
         [Test]
