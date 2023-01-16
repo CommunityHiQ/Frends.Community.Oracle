@@ -7,19 +7,18 @@ on:
 
 jobs:
   build:
-    name: Build on ubuntu-latest
-    runs-on: ubuntu-latest
+    name: Build on self-hosted
+    runs-on: self-hosted
     
     steps:
     - uses: actions/checkout@v1
-
-    - name: set up docker
-      run: chmod 777 ./_build/deploy_oracle_docker_container.sh && ./_build/deploy_oracle_docker_container.sh
 
     - name: Build
       run: dotnet build
     
     - name: Test
+      env:
+        HIQ_ORACLEDB_CONNECTIONSTRING:  ${{ secrets.HIQ_ORACLEDB_CONNECTIONSTRING }}
       run: dotnet test
       
     - name: Pack release version of task

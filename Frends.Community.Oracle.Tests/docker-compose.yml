@@ -1,0 +1,14 @@
+﻿version: '3'
+
+# Usage https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/samples/12102-docker-compose/docker-compose.yml
+
+services:
+  database:
+    image: oracle/database:18.4.0-xe
+    ports:
+    - 51521:1521
+    - 55500:5500
+    environment:
+    - ORACLE_SID=test
+    - ORACLE_PWD=mysecurepassword
+    - ORACLE_CHARACTERSET=AL32UTF8
