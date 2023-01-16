@@ -9,7 +9,7 @@ namespace Frends.Community.Oracle.Tests.Lib
     internal static class Helpers
     {
         /// <summary>
-        /// This methods waits for the docker container to be ready. 
+        /// This methods waits for the docker container to be up and running. 
         /// Method tests connection 20 times and if connection can't be made, it waits for a minute after every attempt
         /// and tries again. This is needed for the CI for it to wait for the container to be ready.
         /// </summary>

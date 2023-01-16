@@ -13,6 +13,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
+    - name: set up docker
+      run: chmod 777 ./_build/deploy_oracle_docker_container.sh && ./_build/deploy_oracle_docker_container.sh
+
     - name: Build
       run: dotnet build
     
