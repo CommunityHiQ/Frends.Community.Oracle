@@ -86,7 +86,7 @@ namespace Frends.Community.Oracle
 
                                 try
                                 {
-                                    // Set commandType according to ReturnType.
+                                    // Set commandType according to ReturnType
                                     switch (queryOutput.ReturnType)
                                     {
                                         case QueryReturnType.Xml:
