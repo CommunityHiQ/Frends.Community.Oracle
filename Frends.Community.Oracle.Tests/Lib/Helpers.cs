@@ -12,6 +12,7 @@ namespace Frends.Community.Oracle.Tests.Lib
         /// This methods waits for the docker container to be ready. 
         /// Method tests connection 20 times and if connection can't be made, it waits for a minute after every attempt
         /// and tries again. This is needed for the CI for it to wait for the container to be ready.
+        /// The docker building script will also wait for 15 minutes. 
         /// </summary>
         internal static void TestConnectionBeforeRunningTests(string connectionString)
         {
