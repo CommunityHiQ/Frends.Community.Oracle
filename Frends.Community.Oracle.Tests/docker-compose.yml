@@ -5,10 +5,11 @@
 services:
   database:
     image: oracle/database:18.4.0-xe
+    container_name: oracledb
     ports:
     - 51521:1521
     - 55500:5500
     environment:
     - ORACLE_SID=test
-    - ORACLE_PWD=mysecurepassword
+    - ORACLE_PWD=mySecurepassword9
     - ORACLE_CHARACTERSET=AL32UTF8

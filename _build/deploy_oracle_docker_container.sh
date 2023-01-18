@@ -13,3 +13,5 @@ echo 'waiting for container to ready up...'
 sleep 900
 
 echo 'docker container build successfully.'
+
+docker logs oracledb

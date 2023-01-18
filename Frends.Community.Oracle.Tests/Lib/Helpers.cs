@@ -26,6 +26,7 @@ namespace Frends.Community.Oracle.Tests.Lib
                         if (con.State == ConnectionState.Open)
                             break;
 
+                        Console.WriteLine("Wait for a minute before trying again.");
                         Thread.Sleep(60000);
                     }
                 }
