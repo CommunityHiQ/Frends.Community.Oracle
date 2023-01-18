@@ -9,4 +9,7 @@ cd ./_build/docker-images/OracleDatabase/SingleInstance/dockerfiles
 
 docker-compose -f ./../../../../../Frends.Community.Oracle.Tests/docker-compose.yml up -d
 
+echo 'waiting for container to ready up...'
+sleep 900
+
 docker logs oracledb
