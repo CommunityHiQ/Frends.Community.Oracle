@@ -14,6 +14,8 @@ sleep 900
 
 docker logs oracledb
 
+docker ps
+
 cd ./../../../../../
 
 dotnet build 

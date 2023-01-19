@@ -8,6 +8,13 @@ using Frends.Community.Oracle.Tests.Lib;
 
 namespace Frends.Community.Oracle.Query.Tests
 {
+
+    /// <summary>
+    /// To run the test, you need to build docker container with following build script.
+    /// run
+    /// ./_build/deploy_oracle_docker_container.sh
+    /// </summary>
+
     [TestFixture]
     public class OracleTests
     {
