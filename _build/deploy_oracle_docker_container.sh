@@ -13,3 +13,9 @@ echo 'waiting for container to ready up...'
 sleep 900
 
 docker logs oracledb
+
+cd ./../../../../../
+
+dotnet build 
+
+dotnet test
