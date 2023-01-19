@@ -21,3 +21,5 @@ cd ./../../../../../
 dotnet build 
 
 dotnet test
+
+docker ps

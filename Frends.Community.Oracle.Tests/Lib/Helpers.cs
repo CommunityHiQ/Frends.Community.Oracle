@@ -28,7 +28,6 @@ namespace Frends.Community.Oracle.Tests.Lib
                             break;
 
                         Console.WriteLine("Wait for a minute before trying again.");
-                        RunCommandWithBash("docker ps");
                         Thread.Sleep(60000);
                     }
                 }
@@ -36,25 +35,6 @@ namespace Frends.Community.Oracle.Tests.Lib
                     throw new Exception("Check that the docker container is up and running.");
                 con.Close();
             }   
-        }
-
-        internal static string RunCommandWithBash(string command)
-        {
-            var psi = new ProcessStartInfo();
-            psi.FileName = "/bin/bash";
-            psi.Arguments = command;
-            psi.RedirectStandardOutput = true;
-            psi.UseShellExecute = false;
-            psi.CreateNoWindow = true;
-
-            using (var process = Process.Start(psi))
-            {
-                process.WaitForExit();
-
-                var output = process.StandardOutput.ReadToEnd();
-
-                return output;
-            }
         }
 
         internal static void CreateTestTable(OracleConnection con)
