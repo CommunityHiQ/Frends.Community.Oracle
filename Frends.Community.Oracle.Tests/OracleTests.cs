@@ -19,7 +19,7 @@ namespace Frends.Community.Oracle.Query.Tests
     public class OracleTests
     {
         /// <summary>
-        /// Connection string for Oracle database.
+        /// Connection string for Oracle database
         /// </summary>
         private readonly static string _schema = "test_user";
         private readonly static string ConnectionString = $"Data Source = (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 51521))(CONNECT_DATA = (SERVICE_NAME = XEPDB1))); User Id = {_schema}; Password={_schema};";
