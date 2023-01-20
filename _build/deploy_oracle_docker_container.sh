@@ -12,19 +12,19 @@ docker-compose -f ./../../../../../Frends.Community.Oracle.Tests/docker-compose.
 echo 'waiting for container to ready up...'
 sleep 900
 
-echo 'Checking the container logs'
+echo 'Checking the container logs.'
 docker logs oracledb
 
-echo 'Checking that the container is up'
+echo 'Checking that the container is up.'
 docker ps
 
 cd ./../../../../../
 
-echo 'Building project'
+echo 'Building project.'
 dotnet build 
 
-echo 'Running tests'
+echo 'Running tests.'
 dotnet test
 
-echo 'Checking that the container is up'
+echo 'Checking that the container is up.'
 docker ps
