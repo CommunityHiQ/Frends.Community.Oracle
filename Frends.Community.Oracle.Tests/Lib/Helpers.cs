@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-using System.Diagnostics;
 using System.Threading;
 using System.Linq;
 using Oracle.ManagedDataAccess.Client;
@@ -34,6 +33,7 @@ namespace Frends.Community.Oracle.Tests.Lib
                 if (con.State != ConnectionState.Open)
                     throw new Exception("Check that the docker container is up and running.");
                 con.Close();
+                OracleConnection.ClearPool(con);
             }   
         }
 

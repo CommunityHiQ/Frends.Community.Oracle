@@ -10,5 +10,7 @@ services:
     - 51521:1521
     - 55500:5500
     environment:
+    - ORACLE_SID=test
+    - ORACLE_PDB=XEPDB1
     - ORACLE_PWD=mySecurepassword9
     - ORACLE_CHARACTERSET=AL32UTF8
