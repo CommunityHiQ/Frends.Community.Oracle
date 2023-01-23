@@ -23,7 +23,7 @@ namespace Frends.Community.Oracle.Query.Tests
         /// </summary>
         private readonly static string _schema = "test_user";
         private readonly static string ConnectionString = $"Data Source = (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 51521))(CONNECT_DATA = (SERVICE_NAME = XEPDB1))); User Id = {_schema}; Password={_schema};";
-        private readonly static string _connectionStringSys = "Data Source = (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 51521))(CONNECT_DATA = (SERVICE_NAME = XEPDB1))); User Id = sys; Password=mySecurepassword9; DBA PRIVILEGE=SYSDBA";
+        private readonly static string _connectionStringSys = "Data Source = (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 51521))(CONNECT_DATA = (SERVICE_NAME = XEPDB1))); User Id = sys; Password=mysecurepassword; DBA PRIVILEGE=SYSDBA";
 
         private readonly string outputDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../TestOut/");
         private readonly string expectedFileDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../ExpectedResults/");
@@ -32,7 +32,7 @@ namespace Frends.Community.Oracle.Query.Tests
         public async Task OneTimeSetUp()
         {
             // This is needed to ensure that the DB is up and running.
-            // Helpers.TestConnectionBeforeRunningTests(_connectionStringSys);
+            Helpers.TestConnectionBeforeRunningTests(_connectionStringSys);
 
             using (var con = new OracleConnection(_connectionStringSys))
             {
@@ -164,7 +164,7 @@ namespace Frends.Community.Oracle.Query.Tests
             {
                 File.Delete(outputDirectory + file);
             }
-            Directory.Delete(outputDirectory);
+            Directory.Delete(outputDirectory, true);
         }
 
         // Test needs new table new_table which has column named 'test1' with apostrophe in column name.
@@ -208,7 +208,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedUtf16Xml.xml"));
-            Assert.AreEqual(expected, result.Result);
+            Assert.AreEqual(expected.Replace("\r", ""), result.Result);
         }
 
         [Test]
@@ -236,7 +236,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             Assert.IsTrue(File.Exists(result.Result), "should have created xml queryOutput file");
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedUtf8Xml.xml"));
-            Assert.AreEqual(expected, File.ReadAllText(result.Result));
+            Assert.AreEqual(expected.Replace("\r", ""), File.ReadAllText(result.Result));
             File.Delete(result.Result);
         }
 
@@ -276,7 +276,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedJson.json"));
-            Assert.AreEqual(expected, result.Result);
+            Assert.AreEqual(expected.Replace("\r", ""), result.Result);
         }
 
         [Test]
@@ -300,7 +300,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             Assert.IsTrue(File.Exists(result.Result), "should have created json outputfile");
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedJson.json"));
-            Assert.AreEqual(expected, File.ReadAllText(result.Result));
+            Assert.AreEqual(expected.Replace("\r", ""), File.ReadAllText(result.Result));
             File.Delete(result.Result);
         }
 
@@ -322,7 +322,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
-            StringAssert.IsMatch(result.Result, "name;value\r\nhodor;123\r\njon;321\r\n");
+            StringAssert.IsMatch(result.Result, "name;value\nhodor;123\njon;321\n");
         }
 
         [Test]
@@ -376,7 +376,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
-            Assert.AreEqual(result.Result, "NAME;SENDSTATUS\r\nHan_1;0\r\n");
+            Assert.AreEqual("NAME;SENDSTATUS\nHan_1;0\n", result.Result);
 
         }
 
@@ -482,7 +482,7 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
-            Assert.AreEqual("ROWCOUNT\r\n4\r\n", result_debug.Result);
+            Assert.AreEqual("ROWCOUNT\n4\n", result_debug.Result);
 
         }
 
@@ -532,7 +532,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
-            Assert.AreEqual(result.Results.First?["Output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
+            Assert.AreEqual(result.Results.First?["Output"]?.ToString(), "[\n  {\n    \"DECIMALVALUE\": 1.123456789123456789123456789\n  }\n]");
             Assert.AreEqual(true, result.Success);
         }
 
@@ -727,7 +727,7 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
-            Assert.AreEqual(result_debug.Result, "[\r\n  {\r\n    \"ROWCOUNT\": 6.0\r\n  }\r\n]");
+            Assert.AreEqual(result_debug.Result, "[\n  {\n    \"ROWCOUNT\": 6.0\n  }\n]");
         }
 
         /// <summary>
@@ -735,7 +735,7 @@ namespace Frends.Community.Oracle.Query.Tests
         /// </summary>
         [Test]
         [Category("MultiqueryTests")]
-        public async Task MultiBatchOpeartionRollback()
+        public async Task MultiBatchOperationRollback()
         {
 
             var inputbatch = new InputMultiBatchOperation
@@ -788,7 +788,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             Assert.That(() => OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken()), Throws.TypeOf<OracleException>());
             Assert.AreEqual(false, output.Success);
-            Assert.AreEqual(result_debug.Result, "[\r\n  {\r\n    \"ROWCOUNT\": 4.0\r\n  }\r\n]");
+            Assert.AreEqual(result_debug.Result, "[\n  {\n    \"ROWCOUNT\": 4.0\n  }\n]");
 
         }
     }

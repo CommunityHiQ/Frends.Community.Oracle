@@ -12,5 +12,5 @@ services:
     environment:
     - ORACLE_SID=XE
     - ORACLE_PDB=XEPDB1
-    - ORACLE_PWD=mySecurepassword9
+    - ORACLE_PWD=mysecurepassword
     - ORACLE_CHARACTERSET=AL32UTF8
