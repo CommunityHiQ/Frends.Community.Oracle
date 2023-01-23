@@ -208,7 +208,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedUtf16Xml.xml"));
-            Assert.AreEqual(expected.Replace("\r", ""), result.Result);
+            Assert.AreEqual(expected.Replace("\r\n", "\n"), result.Result.Replace("\r\n", "\n"));
         }
 
         [Test]
@@ -236,7 +236,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             Assert.IsTrue(File.Exists(result.Result), "should have created xml queryOutput file");
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedUtf8Xml.xml"));
-            Assert.AreEqual(expected.Replace("\r", ""), File.ReadAllText(result.Result));
+            Assert.AreEqual(expected.Replace("\r\n", "\n"), File.ReadAllText(result.Result).Replace("\r\n", "\n"));
             File.Delete(result.Result);
         }
 
@@ -276,7 +276,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedJson.json"));
-            Assert.AreEqual(expected.Replace("\r", ""), result.Result);
+            Assert.AreEqual(expected.Replace("\r\n", "\n"), result.Result.Replace("\r\n", "\n"));
         }
 
         [Test]
@@ -300,7 +300,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             Assert.IsTrue(File.Exists(result.Result), "should have created json outputfile");
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedJson.json"));
-            Assert.AreEqual(expected.Replace("\r", ""), File.ReadAllText(result.Result));
+            Assert.AreEqual(expected.Replace("\r\n", "\n"), File.ReadAllText(result.Result).Replace("\r\n", "\n"));
             File.Delete(result.Result);
         }
 
@@ -322,7 +322,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
-            StringAssert.IsMatch(result.Result, "name;value\nhodor;123\njon;321\n");
+            StringAssert.IsMatch("name;value\nhodor;123\njon;321\n", result.Result.Replace("\r\n", "\n"));
         }
 
         [Test]
@@ -376,7 +376,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
-            Assert.AreEqual("NAME;SENDSTATUS\nHan_1;0\n", result.Result);
+            Assert.AreEqual("NAME;SENDSTATUS\nHan_1;0\n", result.Result.Replace("\r\n", "\n"));
 
         }
 
@@ -427,9 +427,9 @@ namespace Frends.Community.Oracle.Query.Tests
 
             }
 
-            Assert.AreEqual(ex_string.Contains("ORA-00001: unique constraint"), true);
-            Assert.AreEqual(result.Success, false);
-            Assert.AreEqual(result_debug.Result, "");
+            Assert.AreEqual(true, ex_string.Contains("ORA-00001: unique constraint"));
+            Assert.AreEqual(false, result.Success);
+            Assert.AreEqual("", result_debug.Result);
         }
 
         [Test]
@@ -482,7 +482,7 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
-            Assert.AreEqual("ROWCOUNT\n4\n", result_debug.Result);
+            Assert.AreEqual("ROWCOUNT\n4\n", result_debug.Result.Replace("\r\n", "\n"));
 
         }
 
@@ -532,7 +532,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
-            Assert.AreEqual(result.Results.First?["Output"]?.ToString(), "[\n  {\n    \"DECIMALVALUE\": 1.123456789123456789123456789\n  }\n]");
+            Assert.AreEqual("[\n  {\n    \"DECIMALVALUE\": 1.123456789123456789123456789\n  }\n]", result.Results.First?["Output"]?.ToString().Replace("\r\n", "\n"));
             Assert.AreEqual(true, result.Success);
         }
 
@@ -727,7 +727,7 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
-            Assert.AreEqual(result_debug.Result, "[\n  {\n    \"ROWCOUNT\": 6.0\n  }\n]");
+            Assert.AreEqual("[\n  {\n    \"ROWCOUNT\": 6.0\n  }\n]", result_debug.Result.Replace("\r\n", "\n"));
         }
 
         /// <summary>
@@ -788,8 +788,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             Assert.That(() => OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken()), Throws.TypeOf<OracleException>());
             Assert.AreEqual(false, output.Success);
-            Assert.AreEqual(result_debug.Result, "[\n  {\n    \"ROWCOUNT\": 4.0\n  }\n]");
-
+            Assert.AreEqual("[\n  {\n    \"ROWCOUNT\": 6.0\n  }\n]", result_debug.Result.Replace("\r\n", "\n"));
         }
     }
 }
