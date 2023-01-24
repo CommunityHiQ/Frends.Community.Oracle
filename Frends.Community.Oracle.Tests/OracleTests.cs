@@ -4,19 +4,44 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Frends.Community.Oracle.Tests.Lib;
 
 namespace Frends.Community.Oracle.Query.Tests
 {
+
+    /// <summary>
+    /// To run the test, you need to build docker container with following build script.
+    /// run
+    /// ./_build/deploy_oracle_docker_container.sh
+    /// </summary>
+
     [TestFixture]
     public class OracleTests
     {
-        private readonly string ConnectionString = Environment.GetEnvironmentVariable("HIQ_ORACLEDB_CONNECTIONSTRING");
+        /// <summary>
+        /// Connection string for Oracle database
+        /// </summary>
+        private readonly static string _schema = "test_user";
+        private readonly static string ConnectionString = $"Data Source = (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 51521))(CONNECT_DATA = (SERVICE_NAME = XEPDB1))); User Id = {_schema}; Password={_schema};";
+        private readonly static string _connectionStringSys = "Data Source = (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 51521))(CONNECT_DATA = (SERVICE_NAME = XEPDB1))); User Id = sys; Password=mysecurepassword; DBA PRIVILEGE=SYSDBA";
+
         private readonly string outputDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../TestOut/");
         private readonly string expectedFileDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../ExpectedResults/");
 
         [OneTimeSetUp]
         public async Task OneTimeSetUp()
         {
+            // This is needed to ensure that the DB is up and running.
+            Helpers.TestConnectionBeforeRunningTests(_connectionStringSys);
+
+            using (var con = new OracleConnection(_connectionStringSys))
+            {
+                con.Open();
+                Helpers.CreateTestUser(con);
+                con.Close();
+                con.Dispose();
+                OracleConnection.ClearPool(con);
+            }
             using (var connection = new OracleConnection(ConnectionString))
             {
                 await connection.OpenAsync();
@@ -74,6 +99,9 @@ namespace Frends.Community.Oracle.Query.Tests
                     await command.ExecuteNonQueryAsync();
                 }
 
+                connection.Close();
+                connection.Dispose();
+                OracleConnection.ClearPool(connection);
             }
             Directory.CreateDirectory(outputDirectory);
         }
@@ -118,12 +146,48 @@ namespace Frends.Community.Oracle.Query.Tests
                     await command.ExecuteNonQueryAsync();
                 }
 
+                connection.Close();
+                connection.Dispose();
+                OracleConnection.ClearPool(connection);
             }
+
+            using (var con = new OracleConnection(_connectionStringSys))
+            {
+                con.Open();
+                Helpers.DropTestUser(con);
+                con.Close();
+                con.Dispose();
+                OracleConnection.ClearPool(con);
+            }
+
             foreach (var file in Directory.GetFiles(outputDirectory, "*"))
             {
-                File.Delete(outputDirectory + file);
+                File.Delete(file);
             }
-            Directory.Delete(outputDirectory);
+            Directory.Delete(outputDirectory, true);
+        }
+
+        // Test needs new table new_table which has column named 'test1' with apostrophe in column name.
+        // This needs to be added manually.
+        [Ignore("Test needs data with invalid xml characters in column name.")]
+        [Test]
+        [Category("Xml tests")]
+        public async Task ShouldWorkWithApostropheInColumnName()
+        {
+            var q = new QueryProperties { Query = "select * from new_test", ConnectionString = ConnectionString };
+            var o = new QueryOutputProperties
+            {
+                ReturnType = QueryReturnType.Xml,
+                XmlOutput = new XmlOutputProperties
+                {
+                    RootElementName = "items",
+                    RowElementName = "item"
+                }
+            };
+            var options = new QueryOptions { ThrowErrorOnFailure = true };
+
+            var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
+            Assert.IsTrue(result.Result.Contains("<_test1_>testi</_test1_>"));
         }
 
         [Test]
@@ -144,7 +208,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedUtf16Xml.xml"));
-            Assert.AreEqual(expected, result.Result);
+            Assert.AreEqual(expected.Replace("\r\n", "\n"), result.Result.Replace("\r\n", "\n"));
         }
 
         [Test]
@@ -172,7 +236,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             Assert.IsTrue(File.Exists(result.Result), "should have created xml queryOutput file");
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedUtf8Xml.xml"));
-            Assert.AreEqual(expected, File.ReadAllText(result.Result));
+            Assert.AreEqual(expected.Replace("\r\n", "\n"), File.ReadAllText(result.Result).Replace("\r\n", "\n"));
             File.Delete(result.Result);
         }
 
@@ -194,7 +258,7 @@ namespace Frends.Community.Oracle.Query.Tests
             var result = await OracleTasks.ExecuteQueryOracle(queryProperties, outputProperties, options, new CancellationToken());
 
             Assert.AreNotEqual("", result.Result);
-            Assert.AreEqual(true, result.Success);
+            Assert.IsTrue(result.Success);
         }
 
         [Test]
@@ -212,7 +276,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedJson.json"));
-            Assert.AreEqual(expected, result.Result);
+            Assert.AreEqual(expected.Replace("\r\n", "\n"), result.Result.Replace("\r\n", "\n"));
         }
 
         [Test]
@@ -236,7 +300,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             Assert.IsTrue(File.Exists(result.Result), "should have created json outputfile");
             var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedJson.json"));
-            Assert.AreEqual(expected, File.ReadAllText(result.Result));
+            Assert.AreEqual(expected.Replace("\r\n", "\n"), File.ReadAllText(result.Result).Replace("\r\n", "\n"));
             File.Delete(result.Result);
         }
 
@@ -258,7 +322,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
-            StringAssert.IsMatch(result.Result, "name;value\r\nhodor;123\r\njon;321\r\n");
+            Assert.AreEqual("name;value\nhodor;123\njon;321\n", result.Result.Replace("\r\n", "\n"));
         }
 
         [Test]
@@ -312,7 +376,7 @@ namespace Frends.Community.Oracle.Query.Tests
             };
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
-            Assert.AreEqual(result.Result, "NAME;SENDSTATUS\r\nHan_1;0\r\n");
+            Assert.AreEqual("NAME;SENDSTATUS\nHan_1;0\n", result.Result.Replace("\r\n", "\n"));
 
         }
 
@@ -363,9 +427,9 @@ namespace Frends.Community.Oracle.Query.Tests
 
             }
 
-            Assert.AreEqual(ex_string.Contains("ORA-00001: unique constraint"), true);
-            Assert.AreEqual(result.Success, false);
-            Assert.AreEqual(result_debug.Result, "");
+            Assert.IsTrue(ex_string.Contains("ORA-00001: unique constraint"));
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual("", result_debug.Result);
         }
 
         [Test]
@@ -418,7 +482,7 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
-            Assert.AreEqual("ROWCOUNT\r\n4\r\n", result_debug.Result);
+            Assert.AreEqual("ROWCOUNT\n4\n", result_debug.Result.Replace("\r\n", "\n"));
 
         }
 
@@ -440,7 +504,7 @@ namespace Frends.Community.Oracle.Query.Tests
             var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.AreNotEqual("", result.Results);
-            Assert.AreEqual(true, result.Success);
+            Assert.IsTrue(result.Success);
         }
 
         /// <summary>
@@ -468,8 +532,8 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
-            Assert.AreEqual(result.Results.First?["Output"]?.ToString(), "[\r\n  {\r\n    \"DECIMALVALUE\": 1.123456789123456789123456789\r\n  }\r\n]");
-            Assert.AreEqual(true, result.Success);
+            Assert.AreEqual("[\n  {\n    \"DECIMALVALUE\": 1.123456789123456789123456789\n  }\n]", result.Results.First?["Output"]?.ToString().Replace("\r\n", "\n"));
+            Assert.IsTrue(result.Success);
         }
 
         /// <summary>
@@ -514,8 +578,8 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result2 = await OracleTasks.TransactionalMultiQuery(multiQueryProperties2, outputProperties2, options2, new CancellationToken());
 
-            Assert.That(() => OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken()), Throws.TypeOf<OracleException>());
-            Assert.AreEqual(false, result.Success);
+            Assert.ThrowsAsync<OracleException>(() => OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken()));
+            Assert.IsFalse(result.Success);
             Assert.AreNotEqual(2, result2.Results.Count);
 
             File.Delete(outputProperties.OutputFile.Path);
@@ -663,7 +727,7 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
-            Assert.AreEqual(result_debug.Result, "[\r\n  {\r\n    \"ROWCOUNT\": 6.0\r\n  }\r\n]");
+            Assert.AreEqual("[\n  {\n    \"ROWCOUNT\": 6.0\n  }\n]", result_debug.Result.Replace("\r\n", "\n"));
         }
 
         /// <summary>
@@ -671,7 +735,7 @@ namespace Frends.Community.Oracle.Query.Tests
         /// </summary>
         [Test]
         [Category("MultiqueryTests")]
-        public async Task MultiBatchOpeartionRollback()
+        public async Task MultiBatchOperationRollback()
         {
 
             var inputbatch = new InputMultiBatchOperation
@@ -722,10 +786,9 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
-            Assert.That(() => OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken()), Throws.TypeOf<OracleException>());
-            Assert.AreEqual(false, output.Success);
-            Assert.AreEqual(result_debug.Result, "[\r\n  {\r\n    \"ROWCOUNT\": 4.0\r\n  }\r\n]");
-
+            Assert.ThrowsAsync<OracleException>(() => OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken()));
+            Assert.IsFalse(output.Success);
+            Assert.AreEqual("[\n  {\n    \"ROWCOUNT\": 6.0\n  }\n]", result_debug.Result.Replace("\r\n", "\n"));
         }
     }
 }

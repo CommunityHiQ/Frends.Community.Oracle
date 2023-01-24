@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Text.RegularExpressions;
 
 namespace Frends.Community.Oracle
 {
@@ -137,7 +138,8 @@ namespace Frends.Community.Oracle
                                     break;
 
                                 default:
-                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", reader.GetValue(i).ToString());
+                                    Regex regex = new Regex(@"[& < > "" ']");
+                                    await xmlWriter.WriteElementStringAsync("", regex.Replace(reader.GetName(i), "_"), "", regex.Replace(reader.GetValue(i).ToString(), "_"));
                                     break;
                             }
                         }
@@ -531,8 +533,6 @@ namespace Frends.Community.Oracle
 
             }
         }
-
-
     }
 
 }
