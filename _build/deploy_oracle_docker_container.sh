@@ -18,13 +18,14 @@ docker logs oracledb
 echo 'Checking that the container is up.'
 docker ps
 
-cd ./../../../../../
+# For debugging uncomment these lines 
+#cd ./../../../../../
 
-echo 'Building project.'
-dotnet build 
+#echo 'Building project.'
+#dotnet build 
 
-echo 'Running tests.'
-dotnet test
+#echo 'Running tests.'
+#dotnet test
 
-echo 'Checking that the container is up.'
-docker ps
+#echo 'Checking that the container is up.'
+#docker ps

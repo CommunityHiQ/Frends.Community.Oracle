@@ -162,7 +162,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             foreach (var file in Directory.GetFiles(outputDirectory, "*"))
             {
-                File.Delete(outputDirectory + file);
+                File.Delete(file);
             }
             Directory.Delete(outputDirectory, true);
         }
@@ -258,7 +258,7 @@ namespace Frends.Community.Oracle.Query.Tests
             var result = await OracleTasks.ExecuteQueryOracle(queryProperties, outputProperties, options, new CancellationToken());
 
             Assert.AreNotEqual("", result.Result);
-            Assert.AreEqual(true, result.Success);
+            Assert.IsTrue(result.Success);
         }
 
         [Test]
@@ -322,7 +322,7 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
 
-            StringAssert.IsMatch("name;value\nhodor;123\njon;321\n", result.Result.Replace("\r\n", "\n"));
+            Assert.AreEqual("name;value\nhodor;123\njon;321\n", result.Result.Replace("\r\n", "\n"));
         }
 
         [Test]
@@ -427,8 +427,8 @@ namespace Frends.Community.Oracle.Query.Tests
 
             }
 
-            Assert.AreEqual(true, ex_string.Contains("ORA-00001: unique constraint"));
-            Assert.AreEqual(false, result.Success);
+            Assert.IsTrue(ex_string.Contains("ORA-00001: unique constraint"));
+            Assert.IsFalse(result.Success);
             Assert.AreEqual("", result_debug.Result);
         }
 
@@ -504,7 +504,7 @@ namespace Frends.Community.Oracle.Query.Tests
             var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.AreNotEqual("", result.Results);
-            Assert.AreEqual(true, result.Success);
+            Assert.IsTrue(result.Success);
         }
 
         /// <summary>
@@ -533,7 +533,7 @@ namespace Frends.Community.Oracle.Query.Tests
             var result = await OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken());
 
             Assert.AreEqual("[\n  {\n    \"DECIMALVALUE\": 1.123456789123456789123456789\n  }\n]", result.Results.First?["Output"]?.ToString().Replace("\r\n", "\n"));
-            Assert.AreEqual(true, result.Success);
+            Assert.IsTrue(result.Success);
         }
 
         /// <summary>
@@ -578,8 +578,8 @@ namespace Frends.Community.Oracle.Query.Tests
 
             var result2 = await OracleTasks.TransactionalMultiQuery(multiQueryProperties2, outputProperties2, options2, new CancellationToken());
 
-            Assert.That(() => OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken()), Throws.TypeOf<OracleException>());
-            Assert.AreEqual(false, result.Success);
+            Assert.ThrowsAsync<OracleException>(() => OracleTasks.TransactionalMultiQuery(multiQueryProperties, outputProperties, options, new CancellationToken()));
+            Assert.IsFalse(result.Success);
             Assert.AreNotEqual(2, result2.Results.Count);
 
             File.Delete(outputProperties.OutputFile.Path);
@@ -786,8 +786,8 @@ namespace Frends.Community.Oracle.Query.Tests
             options.IsolationLevel = Oracle_IsolationLevel.Serializable;
             var result_debug = await OracleTasks.ExecuteQueryOracle(q2, o, options_2, new CancellationToken());
 
-            Assert.That(() => OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken()), Throws.TypeOf<OracleException>());
-            Assert.AreEqual(false, output.Success);
+            Assert.ThrowsAsync<OracleException>(() => OracleTasks.MultiBatchOperationOracle(inputbatch, options, new CancellationToken()));
+            Assert.IsFalse(output.Success);
             Assert.AreEqual("[\n  {\n    \"ROWCOUNT\": 6.0\n  }\n]", result_debug.Result.Replace("\r\n", "\n"));
         }
     }

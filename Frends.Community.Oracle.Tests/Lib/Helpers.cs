@@ -37,34 +37,6 @@ namespace Frends.Community.Oracle.Tests.Lib
             }   
         }
 
-        internal static void CreateTestTable(OracleConnection con)
-        {
-            using (var cmd = con.CreateCommand())
-            {
-                cmd.CommandType = CommandType.Text;
-
-                cmd.CommandText = @"create table test_user.workers(" +
-                        "id NUMBER, " +
-                        "first_name varchar2(50), " +
-                        "last_name varchar2(50), " +
-                        "start_date date, " +
-                        "primary key(id))";
-                cmd.ExecuteNonQuery();
-            } 
-        }
-
-        internal static void DropTestTable(OracleConnection con)
-        {
-            using (var cmd = con.CreateCommand())
-            {
-                cmd.CommandText = "drop table test_user.workers";
-
-                cmd.CommandType = CommandType.Text;
-
-                cmd.ExecuteNonQuery();
-            }
-        }
-
         internal static void CreateTestUser(OracleConnection con)
         {
             using (var cmd = con.CreateCommand())
