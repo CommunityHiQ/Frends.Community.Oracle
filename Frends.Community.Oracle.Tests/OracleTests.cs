@@ -63,6 +63,16 @@ namespace Frends.Community.Oracle.Query.Tests
                     await command.ExecuteNonQueryAsync();
                 }
 
+                using (var command = new OracleCommand("create table pivotTest(alue varchar2(15), tyyppi varchar2(15), maara number)", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                using (var command = new OracleCommand("insert all into pivotTest values('A45', 'Reports', 1) into pivotTest values('A60', 'ResourceCount', 1) into pivotTest values('A60', 'ToWorkGroup', 2) into pivotTest values('A61', 'ResourceNeed', 2) select 1 from dual", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
                 using (var command = new OracleCommand("create table Inserttest (Name varchar(20), Sendstatus varchar(5))", connection))
                 {
                     await command.ExecuteNonQueryAsync();
@@ -117,6 +127,12 @@ namespace Frends.Community.Oracle.Query.Tests
                 {
                     await command.ExecuteNonQueryAsync();
                 }
+
+                using (var command = new OracleCommand("drop table pivotTest", connection))
+                {
+                    await command.ExecuteNonQueryAsync();
+                }
+
                 using (var command = new OracleCommand("drop table DecimalTest", connection))
                 {
                     await command.ExecuteNonQueryAsync();
@@ -167,14 +183,11 @@ namespace Frends.Community.Oracle.Query.Tests
             Directory.Delete(outputDirectory, true);
         }
 
-        // Test needs new table new_table which has column named 'test1' with apostrophe in column name.
-        // This needs to be added manually.
-        [Ignore("Test needs data with invalid xml characters in column name.")]
         [Test]
         [Category("Xml tests")]
-        public async Task ShouldWorkWithApostropheInColumnName()
+        public async Task ShouldWorkWithPivot()
         {
-            var q = new QueryProperties { Query = "select * from new_test", ConnectionString = ConnectionString };
+            var q = new QueryProperties { Query = @"select * from pivotTest pivot (sum(maara) for tyyppi in ('Reports', 'ResourceCount', 'ToWorkGroup', 'ResourceNeed')) order by alue", ConnectionString = ConnectionString };
             var o = new QueryOutputProperties
             {
                 ReturnType = QueryReturnType.Xml,
@@ -187,7 +200,8 @@ namespace Frends.Community.Oracle.Query.Tests
             var options = new QueryOptions { ThrowErrorOnFailure = true };
 
             var result = await OracleTasks.ExecuteQueryOracle(q, o, options, new CancellationToken());
-            Assert.IsTrue(result.Result.Contains("<_test1_>testi</_test1_>"));
+            var expected = File.ReadAllText(Path.Combine(expectedFileDirectory, "ExpectedPivotXml.xml"));
+            Assert.AreEqual(expected.Replace("\r\n", "\n"), result.Result.Replace("\r\n", "\n"));
         }
 
         [Test]

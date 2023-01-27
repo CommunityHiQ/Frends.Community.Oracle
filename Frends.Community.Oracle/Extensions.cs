@@ -111,6 +111,7 @@ namespace Frends.Community.Oracle
 
                         for (var i = 0; i < reader.FieldCount; i++)
                         {
+                            Regex regex = new Regex(@"[& < > "" ']");
                             switch (reader.GetDataTypeName(i))
                             {
                                 case "Decimal":
@@ -125,7 +126,7 @@ namespace Frends.Community.Oracle
                                             .Replace(",", queryOutput.XmlOutput.DecimalSeparator);
                                     }
 
-                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", decimalString);
+                                    await xmlWriter.WriteElementStringAsync("", regex.Replace(reader.GetName(i), "_"), "", decimalString);
                                     break;
                                 case "Date":
                                 case "TimeStamp":
@@ -134,12 +135,11 @@ namespace Frends.Community.Oracle
                                     string dateString = ParseOracleDate(reader,
                                                                         i,
                                                                         queryOutput.XmlOutput.DateTimeFomat);
-                                    await xmlWriter.WriteElementStringAsync("", reader.GetName(i), "", dateString);
+                                    await xmlWriter.WriteElementStringAsync("", regex.Replace(reader.GetName(i), "_"), "", dateString);
                                     break;
 
                                 default:
-                                    Regex regex = new Regex(@"[& < > "" ']");
-                                    await xmlWriter.WriteElementStringAsync("", regex.Replace(reader.GetName(i), "_"), "", regex.Replace(reader.GetValue(i).ToString(), "_"));
+                                    await xmlWriter.WriteElementStringAsync("", regex.Replace(reader.GetName(i), "_"), "", reader.GetValue(i).ToString());
                                     break;
                             }
                         }
