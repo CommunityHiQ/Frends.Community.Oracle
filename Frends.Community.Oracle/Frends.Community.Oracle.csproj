@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net471;net6.0;net8.0</TargetFrameworks>
     <Company>HiQ Finland</Company>
     <Description>Tasks for performing queries to Oracle database</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -11,7 +11,7 @@
     <IncludeSource>true</IncludeSource>
     <PackageTags>Frends</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>3.2.2</Version>
+    <Version>3.3.0</Version>
 
   </PropertyGroup>
 
@@ -22,10 +22,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.35" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.180" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.260" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 
 </Project>
