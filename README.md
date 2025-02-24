@@ -268,3 +268,4 @@ NOTE: Be sure to merge the latest from "upstream" before making a pull request!
 | 3.2.0 | Added possibility to overwrite default decimal separator in Decimal typed columns, when using CSV or XML output. Added property for setting DateTime output format. |
 | 3.2.1 | Updated Oracle.ManagedDataAccess.Client library and added functionality to replace invalid xml characters with underscore '_'. Fixed also workflows and changed them to be run on ubuntu. |
 | 3.2.2 | Added functionality to replace invalid xml characters with underscore '_' when using pivot sql query. |
+| 3.3.0 | Targeted to .NET6 and 8 and updated packages. |
